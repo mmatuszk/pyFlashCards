@@ -24,9 +24,9 @@
 #   USA.
 #-------------------------------------------------------------------------------
 # CVS information
-# $File:$
-# $Revision: 1.2 $
-# $Date: 2006/10/29 23:28:26 $
+# $Source: /cvsroot/pyflashcards/pyFlashCards/CardManagerDlg.py,v $
+# $Revision: 1.3 $
+# $Date: 2006/10/29 23:40:40 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import wx
