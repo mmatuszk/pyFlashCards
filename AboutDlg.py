@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/AboutDlg.py,v $
-# $Revision: 1.3 $
-# $Date: 2006/10/29 23:40:40 $
+# $Revision: 1.4 $
+# $Date: 2006/10/29 23:47:14 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import wx
@@ -60,10 +60,10 @@ class AboutDlg(wx.Dialog):
 
         title = wx.StaticText(self, -1, 'pyFlashCards %d.%d.%d' % (ver.major, ver.minor, ver.build))
         f = title.GetFont()
-        f.SetPointSize(18)
+        f.SetPointSize(15)
         title.SetFont(f)
 
-        license = html.HtmlWindow(self, -1, size=(400, 200))
+        license = html.HtmlWindow(self, -1, size=(500, 300))
         license.SetPage(license_str)
         
 
