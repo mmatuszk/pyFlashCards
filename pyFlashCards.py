@@ -1,3 +1,8 @@
+# $File:$
+# $Revision: 1.2 $
+# $Date: 2006/10/29 22:52:56 $
+# $Author: marcin $
+
 import wx
 import os, user
 import ConfigParser
