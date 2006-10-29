@@ -24,10 +24,10 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/Attic/ver.py,v $
-# $Revision: 1.3 $
-# $Date: 2006/10/29 23:40:41 $
+# $Revision: 1.4 $
+# $Date: 2006/10/29 23:57:28 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 major=0
 minor=2
-build=0
+build=1

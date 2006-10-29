@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/CardManagerDlg.py,v $
-# $Revision: 1.3 $
-# $Date: 2006/10/29 23:40:40 $
+# $Revision: 1.4 $
+# $Date: 2006/10/29 23:57:28 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import wx
@@ -189,8 +189,16 @@ class CardManagerDlg(wx.Dialog):
         self.DeleteCardBtn.SetBestFittingSize()
         self.FindNextBtn.SetBestFittingSize()
         self.FindPreviousBtn.SetBestFittingSize()
+        self.CardUpBtn.SetBestFittingSize()
+        self.CardDownBtn.SetBestFittingSize()
         self.RemoveFrontImageButton.SetBestFittingSize()
         self.RemoveBackImageButton.SetBestFittingSize()
+
+        # Disable buttons that are not implemented
+        self.FindNextBtn.Enable(False)
+        self.FindPreviousBtn.Enable(False)
+        self.CardUpBtn.Enable(False)
+        self.CardDownBtn.Enable(False)
 
         # Adjust the size of the chapter choice
         bw, bh = self.ChaptersChoice.GetBestSize()
