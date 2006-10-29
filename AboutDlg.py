@@ -1,3 +1,33 @@
+#-------------------------------------------------------------------------------
+# Author:   Marcin Matuszkiewicz
+#-------------------------------------------------------------------------------
+# pyFlashCards is a multiplatform flash cards software.
+# Copyright (C) 2006  Marcin Matuszkiewicz
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+#   Foundation, Inc.
+#   51 Franklin Street, Fifth Floor
+#   Boston
+#   MA  02110-1301
+#   USA.
+#-------------------------------------------------------------------------------
+# CVS information
+# $File:$
+# $Revision: 1.2 $
+# $Date: 2006/10/29 23:28:25 $
+# $Author: marcin $
+#-------------------------------------------------------------------------------
 import wx
 import wx.html as html
 import ver
@@ -11,7 +41,10 @@ license_str =\
 <h3>Credits</h3>
 Marcin Matuszkiewicz
 <h3>License</h3>
-This is free software.  It can be distributed under the term of the GNU General Public license.
+Copyright (C) 2006 Marcin Matuszkiewicz<br>
+pyFlashCards comes with ABSOLUTELY NO WARRANTY.  
+This is free software, and you are welcome
+to redistribute it under certain conditions.
 </body>
 <html>
 """
