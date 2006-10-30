@@ -24,15 +24,17 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/AboutDlg.py,v $
-# $Revision: 1.4 $
-# $Date: 2006/10/29 23:47:14 $
+# $Revision: 1.5 $
+# $Date: 2006/10/30 00:48:55 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import wx
 import wx.html as html
-import ver
+import ConfigParser
 
 ID_ABOUT_DLG = wx.NewId()
+
+revcfg_filename = 'rev.cfg'
 
 license_str =\
 """
@@ -58,7 +60,7 @@ class AboutDlg(wx.Dialog):
         img = wx.Image('icons/pyFlashCards.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         logo = wx.StaticBitmap(self, -1, img)
 
-        title = wx.StaticText(self, -1, 'pyFlashCards %d.%d.%d' % (ver.major, ver.minor, ver.build))
+        title = wx.StaticText(self, -1, 'pyFlashCards %d.%d.%d' % self.GetVersion())
         f = title.GetFont()
         f.SetPointSize(15)
         title.SetFont(f)
@@ -76,3 +78,21 @@ class AboutDlg(wx.Dialog):
         sizer.Add(button, 0, wx.ALL | wx.CENTER, 10)
 
         self.SetSizerAndFit(sizer)
+
+    def GetVersion(self):
+        config = ConfigParser.ConfigParser()
+        config.read(revcfg_filename)
+
+        # parse configuration file
+        try:
+            major = int(config.get('rev', 'major'))
+            minor = int(config.get('rev', 'minor'))
+            build = int(config.get('rev', 'build'))
+        except ConfigParser.NoSectionError, sec:
+            print 'No section:', sec
+            return 0, 0, 0
+        except ConfigParser.NoOptionError, opt:
+            print 'No option', opt
+            return 0, 0, 0
+
+        return (major, minor, build)

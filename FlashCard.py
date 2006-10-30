@@ -24,14 +24,19 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.3 $
-# $Date: 2006/10/29 23:40:41 $
+# $Revision: 1.4 $
+# $Date: 2006/10/30 00:48:55 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
-import fileinput, codecs, os, copy
+import fileinput, codecs, os, copy, sys
 import XMLDoc
 
-debug_save = True
+if sys.platform == 'win32':
+    zipcmd='7z'
+else:
+    zipcmd='./7z'
+
+debug_save = False
 
 DefaultBoxSize = [10, 20, 50, 100, 250, 500, 1000, 2000, 4000, 10000]
 BoxNum = len(DefaultBoxSize)
@@ -876,7 +881,7 @@ class FlashCardSet:
             os.remove(filename)
 
         # Make the zip command
-        cmd = './7z u '
+        cmd = zipcmd+' u '
         cmd += '"'+filename+'"'
         cmd += ' ' + '"'+self.datafile+'"'
         cmd += ' ' + '"'+self.picdir+'"'
@@ -890,7 +895,7 @@ class FlashCardSet:
     def Load(self, filename):    
         print "Load: ", filename
         self.RemoveTmpDir()
-        cmd = './7z x '
+        cmd = zipcmd+' x '
         cmd += '"'+filename+'"'
         #cmd += ' -o'+self.tmpdir
         print cmd
