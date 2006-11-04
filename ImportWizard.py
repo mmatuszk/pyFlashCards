@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/ImportWizard.py,v $
-# $Revision: 1.3 $
-# $Date: 2006/10/29 23:40:41 $
+# $Revision: 1.4 $
+# $Date: 2006/11/04 00:33:51 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import wx
@@ -55,11 +55,15 @@ class ImportTypePage(wiz.WizardPageSimple):
     def GetData(self):
         return self.ImportTypeListBox.GetStringSelection()
 
+    def GetIndex(self):
+        return self.ImportTypeListBox.GetSelection()
+
 class FilePage(wiz.WizardPageSimple):
-    def __init__(self, parent, dir):
+    def __init__(self, parent, dir, wildcards):
         wiz.WizardPageSimple.__init__(self, parent)
 
         self.dir = dir
+        self.wildcards = wildcards
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         label = wx.StaticText(self, -1, 'Choose file to import')
@@ -83,8 +87,12 @@ class FilePage(wiz.WizardPageSimple):
         self.SetSizer(sizer)
 
     def OnBrowse(self, event):
+        # The previous page
+        p = self.GetPrev()
+        wildcard = self.wildcards[p.GetIndex()]
+
         dlg = wx.FileDialog(self, message='Choose a file', defaultDir = self.dir, 
-                    defaultFile='', style=wx.OPEN)
+                    defaultFile='', wildcard=wildcard, style=wx.OPEN)
 
         ans = dlg.ShowModal()
         if ans == wx.ID_OK:
