@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.4 $
-# $Date: 2006/10/30 00:48:55 $
+# $Revision: 1.5 $
+# $Date: 2006/11/04 00:32:50 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import fileinput, codecs, os, copy, sys
@@ -43,7 +43,10 @@ BoxNum = len(DefaultBoxSize)
 
 tmpdir = 'tmp1'
 
-ImportTypeList = ['Text file (UTF8) - cards', 'Text file (UTF8) - image list']
+ImportTypeList = ['Text file (UTF8) - cards', 'XML file']
+ImportWildcard = ['Text files (*.txt)|*.txt', 'XML files (*.xml)|*.xml']
+ExportTypeList = ['XML file - chapter']
+ExportWildcard = ['XML files (*.xml)|*.xml']
 
 def lindices(list):
     return range(len(list))
@@ -522,7 +525,11 @@ class FlashCardSet:
         # Initialize import map
         self.ImportMap = {}
         self.ImportMap[ImportTypeList[0]] = self.ImportCards
-        self.ImportMap[ImportTypeList[1]] = self.ImportImageList
+        self.ImportMap[ImportTypeList[1]] = self.ImportXML
+
+        # Initizalize export map
+        self.ExportMap = {}
+        self.ExportMap[ExportTypeList[0]] = self.ExportXML
 
     def ClearAllData(self):
         self.ChapterList = []    
@@ -1133,6 +1140,12 @@ class FlashCardSet:
             return 0
 
         return self.ImportMap[type](filename, chapter)
+
+    def Export(self, type, filename, chapter):
+        if type not in self.ExportMap.keys():
+            return 0
+
+        return self.ExportMap[type](filename, chapter)
                         
     def ImportCards(self, filename, chapter):
         print filename
@@ -1189,9 +1202,55 @@ class FlashCardSet:
 
         return count
 
-    def ImportImageList(self, filename, chapter):
-        print 'ImportImageList not implemented'
-        return 0
+    def ImportXML(self, filename, chapter):
+        count = 0
+
+        if chapter not in self.GetChapters():
+            return count
+
+        doc = XMLDoc.XMLDocument()
+        doc.parse(filename)
+
+        root = doc.getAll('data')
+
+        if root:
+            # Cards
+            for card_list in root[0].getAll('card_list'):
+                for cardNode in card_list.getAll('card'):
+                    for front in cardNode.getAll('front_text'):
+                        frontText = front.getText()
+                    for back in cardNode.getAll('back_text'):
+                        backText = back.getText()
+
+                    card = FlashCard(frontText, backText)        
+                    self.AddCard(chapter, FlashCard(frontText, backText))
+                    
+                    count += 1
+
+        return count
+
+    def ExportXML(self, filename, chapter):
+        doc = XMLDoc.XMLDocument()
+
+        root = doc.add('data')
+
+        cardsNode = root.add('card_list')
+        for card in self.Cards[chapter]:
+            node = cardsNode.add('card')
+            node.add('front_text').addText(card.GetFrontText())
+            node.add('back_text').addText(card.GetBackText())
+            if card.FrontImage:
+                node.add('front_image').addText(card.GetFrontImage())
+            if card.BackImage:
+                node.add('back_image').addText(card.GetBackImage())
+            node.add('chapter').addText(chapter)
+
+        # Write the document to file
+        f = codecs.open(filename, 'w', 'utf_8')
+        doc.writexml(f)
+        f.close()
+
+        return 1
     
     #-------------------------------------------------------------------------
     # Export specified chapter to the XML format supported by the
