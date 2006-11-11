@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/AboutDlg.py,v $
-# $Revision: 1.5 $
-# $Date: 2006/10/30 00:48:55 $
+# $Revision: 1.6 $
+# $Date: 2006/11/11 00:47:31 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import wx
@@ -57,7 +57,7 @@ class AboutDlg(wx.Dialog):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        img = wx.Image('icons/pyFlashCards.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        img = wx.Image('icons/pyFlashCards2.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         logo = wx.StaticBitmap(self, -1, img)
 
         title = wx.StaticText(self, -1, 'pyFlashCards %d.%d.%d' % self.GetVersion())
