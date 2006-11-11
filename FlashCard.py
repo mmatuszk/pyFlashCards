@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.5 $
-# $Date: 2006/11/04 00:32:50 $
+# $Revision: 1.6 $
+# $Date: 2006/11/11 00:48:28 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import fileinput, codecs, os, copy, sys
@@ -43,10 +43,11 @@ BoxNum = len(DefaultBoxSize)
 
 tmpdir = 'tmp1'
 
-ImportTypeList = ['Text file (UTF8) - cards', 'XML file']
-ImportWildcard = ['Text files (*.txt)|*.txt', 'XML files (*.xml)|*.xml']
-ExportTypeList = ['XML file - chapter']
-ExportWildcard = ['XML files (*.xml)|*.xml']
+ImportTypeList  = ['Text file (UTF8) - cards', 'XML file']
+ImportWildcard  = ['Text files (*.txt)|*.txt', 'XML files (*.xml)|*.xml']
+ExportTypeList  = ['XML file - chapter']
+ExportWildcard  = ['XML files (*.xml)|*.xml']
+ExportExt       = ['xml']
 
 def lindices(list):
     return range(len(list))
@@ -70,6 +71,19 @@ def DetectFileEncoding(filename):
         # Assume ascii even though other encodings are possible
         return 'ascii'
 
+def GetExportExt(exporttype):
+    for i, t in zip(range(len(ExportTypeList)), ExportTypeList):
+        if exporttype == t:
+            return ExportExt[i]
+
+    return ''
+
+def GetExportWildcard(exporttype):
+    for i, t in zip(range(len(ExportTypeList)), ExportTypeList):
+        if exporttype == t:
+            return ExportWildcard[i]
+
+    return ''
 
 class FlashCardError(Exception):
     def __init__(self, value):
@@ -1230,6 +1244,7 @@ class FlashCardSet:
         return count
 
     def ExportXML(self, filename, chapter):
+        ct = 0
         doc = XMLDoc.XMLDocument()
 
         root = doc.add('data')
@@ -1239,18 +1254,15 @@ class FlashCardSet:
             node = cardsNode.add('card')
             node.add('front_text').addText(card.GetFrontText())
             node.add('back_text').addText(card.GetBackText())
-            if card.FrontImage:
-                node.add('front_image').addText(card.GetFrontImage())
-            if card.BackImage:
-                node.add('back_image').addText(card.GetBackImage())
             node.add('chapter').addText(chapter)
+            ct += 1
 
         # Write the document to file
         f = codecs.open(filename, 'w', 'utf_8')
         doc.writexml(f)
         f.close()
 
-        return 1
+        return ct
     
     #-------------------------------------------------------------------------
     # Export specified chapter to the XML format supported by the
