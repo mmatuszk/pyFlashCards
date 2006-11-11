@@ -23,9 +23,9 @@
 #   USA.
 #-------------------------------------------------------------------------------
 # CVS information
-# $File:$
-# $Revision: 1.3 $
-# $Date: 2006/10/29 23:28:26 $
+# $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
+# $Revision: 1.5 $
+# $Date: 2006/11/11 00:49:16 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 
@@ -47,6 +47,7 @@ import FlashCard
 import FlashCardDataDisp
 import events
 import ImportWizard as iw
+import ExportWizard as ew
 
 ID_FLASH_CARD_FRAME             = wx.NewId()
 
@@ -133,7 +134,7 @@ class FlashCardFrame(wx.Frame):
 
         self.LoadConfig()
 
-        icon = wx.Icon('icons/pyFlashCards32x32.ico', wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon('icons/pyFlashCards2-32x32.ico', wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
 
         # Initialize data
@@ -207,11 +208,16 @@ class FlashCardFrame(wx.Frame):
                 self.Config.get('directories', 'import_dir')
             except:
                 self.Config.set('directories', 'import_dir', user.home)
+            try:
+                self.Config.get('directories', 'export_dir')
+            except:
+                self.Config.set('directories', 'export_dir', user.home)
         else:
             self.Config.add_section('directories')
             self.Config.set('directories', 'card_dir', user.home)
             self.Config.set('directories', 'image_dir', user.home)
             self.Config.set('directories', 'import_dir', user.home)
+            self.Config.set('directories', 'export_dir', user.home)
 
     def WriteConfig(self):
         f = open(ConfigFile, 'w')
@@ -268,6 +274,7 @@ class FlashCardFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnOpen, id=ID_FILE_OPEN)
         self.Bind(wx.EVT_MENU, self.OnClose, id=ID_FILE_CLOSE)
         self.Bind(wx.EVT_MENU, self.OnImportWizard, id=ID_FILE_IMPORT)
+        self.Bind(wx.EVT_MENU, self.OnExportWizard, id=ID_FILE_EXPORT)
         self.Bind(wx.EVT_MENU, self.OnExit, id=ID_FILE_EXIT)
 
         
@@ -351,6 +358,7 @@ class FlashCardFrame(wx.Frame):
         self.FileMenu.Enable(ID_FILE_SAVE, True)
         self.FileMenu.Enable(ID_FILE_SAVE_AS, True)
         self.FileMenu.Enable(ID_FILE_IMPORT, True)
+        self.FileMenu.Enable(ID_FILE_EXPORT, True)
 
         self.CardsMenu.Enable(ID_CARDS_CARD_MANAGER, True)
         self.CardsMenu.Enable(ID_CARDS_EDIT_TEST_CARD, True)
@@ -365,6 +373,7 @@ class FlashCardFrame(wx.Frame):
         self.FileMenu.Enable(ID_FILE_SAVE, False)
         self.FileMenu.Enable(ID_FILE_SAVE_AS, False)
         self.FileMenu.Enable(ID_FILE_IMPORT, False)
+        self.FileMenu.Enable(ID_FILE_EXPORT, False)
 
         self.CardsMenu.Enable(ID_CARDS_CARD_MANAGER, False)
         self.CardsMenu.Enable(ID_CARDS_EDIT_TEST_CARD, False)
@@ -586,10 +595,11 @@ class FlashCardFrame(wx.Frame):
             dlg.ShowModal()
             return
 
-        bitmap = wx.Image('icons/wizard.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        #bitmap = wx.Image('icons/wizard.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        bitmap = wx.Image('icons/pyFlashCards2-import.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         wizard = wiz.Wizard(self, -1, "Import Wizard", bitmap)
         page1 = iw.ImportTypePage(wizard, FlashCard.ImportTypeList)
-        page2 = iw.FilePage(wizard, self.Config.get('directories', 'import_dir'))
+        page2 = iw.FilePage(wizard, self.Config.get('directories', 'import_dir'), FlashCard.ImportWildcard)
         page3 = iw.ChapterPage(wizard, self.CardSet.GetChapters())
         wiz.WizardPageSimple_Chain(page1, page2)
         wiz.WizardPageSimple_Chain(page2, page3)
@@ -606,6 +616,34 @@ class FlashCardFrame(wx.Frame):
 
         wizard.Destroy()
 
+    def OnExportWizard(self, event):
+        if not self.CardSet:
+            return
+
+        if self.CardSet.GetChapterCount() == 0:
+            dlg = wx.MessageDialog(self, "Add some chapters first", "Error", wx.OK | wx.ICON_ERROR)
+            dlg.CenterOnParent(wx.BOTH)
+            dlg.ShowModal()
+            return
+
+        bitmap = wx.Image('icons/pyFlashCards2-export.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        wizard = wiz.Wizard(self, -1, "Export Wizard", bitmap)
+        page1 = ew.ExportTypePage(wizard)
+        page2 = ew.FilePage(wizard, self.Config.get('directories', 'export_dir'))
+        page3 = ew.ChapterPage(wizard, self.CardSet.GetChapters())
+        wiz.WizardPageSimple_Chain(page1, page2)
+        wiz.WizardPageSimple_Chain(page2, page3)
+
+        if wizard.RunWizard(page1):
+            ExportType = page1.GetData()
+            ExportFile = page2.GetData()
+            ExportChapter = page3.GetData()
+            self.Config.set('directories', 'export_dir', os.path.dirname(ExportFile))
+            n = self.CardSet.Export(ExportType, ExportFile.encode('utf_8'), ExportChapter)
+            dlg = wx.MessageDialog(self, "%d cads exported" % n, "Export result", wx.OK | wx.ICON_INFORMATION)
+            dlg.ShowModal()
+
+        wizard.Destroy()
 
     def OnExit(self, event):
         self.Close()
