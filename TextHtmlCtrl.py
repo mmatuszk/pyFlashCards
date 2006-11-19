@@ -13,9 +13,8 @@ class TextHtmlCtrl(wx.TextCtrl):
     def OnKeyDown(self, event):
         keycode = event.GetKeyCode()
 
-        if event.ControlDown() and not event.ShiftDown() and not event.AltDown()\
-                and not event.MetaDown():
-            print 'shortcut'
+        if event.ControlDown() and not event.ShiftDown() \
+                and not event.AltDown():
             if keycode is ord('B'):
                 self.Bold()
             if keycode is ord ('U'):
