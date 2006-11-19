@@ -25,12 +25,13 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/CardManagerDlg.py,v $
-# $Revision: 1.4 $
-# $Date: 2006/10/29 23:57:28 $
+# $Revision: 1.5 $
+# $Date: 2006/11/19 04:41:06 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import wx
 import wx.lib.imagebrowser as ib
+import TextHtmlCtrl as th
 
 import FlashCard
 import shutil, os
@@ -63,12 +64,12 @@ class CardManagerDlg(wx.Dialog):
               title=u'Card Manager')
         self.SetClientSize(wx.Size(1240, 707))
 
-        self.FrontEntry = wx.TextCtrl(id=wxID_CARDMANAGERDLGFRONTENTRY,
+        self.FrontEntry = th.TextHtmlCtrl(id=wxID_CARDMANAGERDLGFRONTENTRY,
               name=u'FrontEntry', parent=self, pos=wx.Point(72, 56),
               size=wx.Size(576, 250), style=wx.TE_MULTILINE | wx.TE_RICH2,
               value=u'')
 
-        self.BackEntry = wx.TextCtrl(id=wxID_CARDMANAGERDLGBACKENTRY,
+        self.BackEntry = th.TextHtmlCtrl(id=wxID_CARDMANAGERDLGBACKENTRY,
               name=u'BackEntry', parent=self, pos=wx.Point(72, 328),
               size=wx.Size(576, 250), style=wx.TE_MULTILINE | wx.TE_RICH2,
               value=u'')
