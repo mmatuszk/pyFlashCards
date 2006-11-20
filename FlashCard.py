@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.6 $
-# $Date: 2006/11/11 00:48:28 $
+# $Revision: 1.7 $
+# $Date: 2006/11/20 04:45:30 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import fileinput, codecs, os, copy, sys
@@ -33,6 +33,8 @@ import XMLDoc
 
 if sys.platform == 'win32':
     zipcmd='7z'
+elif sys.platform == 'darwin':
+    zipcmd = './7za.mac'
 else:
     zipcmd='./7z'
 
