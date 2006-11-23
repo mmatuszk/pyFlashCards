@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/CardManagerDlg.py,v $
-# $Revision: 1.5 $
-# $Date: 2006/11/19 04:41:06 $
+# $Revision: 1.6 $
+# $Date: 2006/11/23 18:04:08 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import wx
@@ -239,6 +239,9 @@ class CardManagerDlg(wx.Dialog):
 
         # for wxGTK
         self.CardListCtrl.Bind(wx.EVT_RIGHT_UP, self.OnRightClick)
+
+        # Bind the OnCloseWindow in order to check in edited cards is saved
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
     def SelectCard(self, card):
         chapter = card.GetChapter()
@@ -628,6 +631,19 @@ class CardManagerDlg(wx.Dialog):
     def OnPopupMoveChapter(self, event):
         chapter = self.PopupIDChapterMap[event.GetId()]
         self.MoveSelectedCards(chapter)
+
+    def OnCloseWindow(self, event):
+        if self.FrontEntry.GetValue() == '' and self.BackEntry.GetValue() == '':
+            event.Skip()
+        else:
+            # A card is being edited
+            dlg = wx.MessageDialog(self, "You are editing a card.  Do you really want to quit.", "Warning",
+                            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
+            ans = dlg.ShowModal()
+            dlg.Destroy()
+
+        if ans == wx.ID_YES:
+            event.Skip()
 
 def MakeButtonBitmap(filename, bsize, pad=10):
         bw, bh = bsize
