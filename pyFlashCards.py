@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.5 $
-# $Date: 2006/11/11 00:49:16 $
+# $Revision: 1.6 $
+# $Date: 2006/11/23 17:51:11 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 
@@ -566,6 +566,7 @@ class FlashCardFrame(wx.Frame):
     def SaveAndCloseCardSet(self):
         if self.CardSet.IsSaved():
             self.CloseCardSet()
+            ans = wx.ID_YES
         else:
             dlg = wx.MessageDialog(self, "Active set not saved.  Do you want to save it?", "Warning",
                             wx.YES_NO | wx.YES_DEFAULT | wx.CANCEL | wx.ICON_QUESTION)
@@ -579,6 +580,8 @@ class FlashCardFrame(wx.Frame):
                 pass
 
             dlg.Destroy()
+
+        return ans
 
     def OnClose(self, event):
         self.SaveAndCloseCardSet()
@@ -652,9 +655,8 @@ class FlashCardFrame(wx.Frame):
         self.WriteConfig()
 
         if self.CardSet:
-            self.SaveAndCloseCardSet()
-
-        event.Skip()
+            if self.SaveAndCloseCardSet() != wx.ID_CANCEL:
+                event.Skip()
 
     def OnSize(self, event):
         w, h = event.GetSize()
