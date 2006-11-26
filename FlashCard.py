@@ -24,12 +24,13 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.7 $
-# $Date: 2006/11/20 04:45:30 $
+# $Revision: 1.8 $
+# $Date: 2006/11/26 01:22:17 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import fileinput, codecs, os, copy, sys
 import XMLDoc
+import htmlDoc
 
 if sys.platform == 'win32':
     zipcmd='7z'
@@ -47,9 +48,9 @@ tmpdir = 'tmp1'
 
 ImportTypeList  = ['Text file (UTF8) - cards', 'XML file']
 ImportWildcard  = ['Text files (*.txt)|*.txt', 'XML files (*.xml)|*.xml']
-ExportTypeList  = ['XML file - chapter']
-ExportWildcard  = ['XML files (*.xml)|*.xml']
-ExportExt       = ['xml']
+ExportTypeList  = ['XML file - chapter', 'HTML file - chapter']
+ExportWildcard  = ['XML files (*.xml)|*.xml', 'HTML files (*.html)|*.html']
+ExportExt       = ['xml', 'html']
 
 def lindices(list):
     return range(len(list))
@@ -546,6 +547,7 @@ class FlashCardSet:
         # Initizalize export map
         self.ExportMap = {}
         self.ExportMap[ExportTypeList[0]] = self.ExportXML
+        self.ExportMap[ExportTypeList[1]] = self.ExportHTML
 
     def ClearAllData(self):
         self.ChapterList = []    
@@ -1264,6 +1266,42 @@ class FlashCardSet:
         doc.writexml(f)
         f.close()
 
+        return ct
+
+    def ExportHTML(self, filename, chapter):
+        ct = 0
+        Tag = htmlDoc.Tag
+
+        doc = htmlDoc.HtmlDocument()
+        doc.setHtmlTitle(chapter)
+
+        table=Tag.TABLE(None, '100%', 1, "#000000", 4, 0)
+        for card in self.Cards[chapter]:
+            tr = Tag.TR(None, "TOP")
+            td = Tag.TD(contents=None, width="50%")
+            for line in card.GetFrontText().split('\n'):
+                td.append(line)
+                td.append(Tag.BR())
+            tr.append(td)
+
+            td = Tag.TD(contents=None, width="50%")
+            for line in card.GetBackText().split('\n'):
+                td.append(line)
+                td.append(Tag.BR())
+            tr.append(td)
+                
+            table.append(tr)
+            ct += 1
+
+        doc.append(table)
+
+        # Write the document to file
+        f = codecs.open(filename, 'w', 'utf_8')
+        #f = open(filename, 'w')
+        f.write(codecs.BOM_UTF8.decode('utf_8'))
+        doc.writeHtml(f)
+        f.close()
+            
         return ct
     
     #-------------------------------------------------------------------------
