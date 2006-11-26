@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/CardManagerDlg.py,v $
-# $Revision: 1.6 $
-# $Date: 2006/11/23 18:04:08 $
+# $Revision: 1.7 $
+# $Date: 2006/11/26 15:55:42 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import wx
@@ -328,6 +328,8 @@ class CardManagerDlg(wx.Dialog):
     def AddCards2List(self, list):
         for card in list:
             front, back = card.GetBothSides()
+            front = front.split('\n')[0]
+            back = back.split('\n')[0]
             # Insert cards at the end of the list by getting the index from the
             # number of items in the list
             index = self.CardListCtrl.GetItemCount()
@@ -426,8 +428,8 @@ class CardManagerDlg(wx.Dialog):
                 pass
 
             # Update GUI controls
-            self.CardListCtrl.SetStringItem(index, 0, card.GetFrontText())
-            self.CardListCtrl.SetStringItem(index, 1, card.GetBackText())
+            self.CardListCtrl.SetStringItem(index, 0, card.GetFrontText().split('\n')[0])
+            self.CardListCtrl.SetStringItem(index, 1, card.GetBackText().split('\n')[0])
             self.CardListCtrl.SetItemState(index, 0, wx.LIST_STATE_SELECTED)
             
             # Update program data
@@ -635,6 +637,7 @@ class CardManagerDlg(wx.Dialog):
     def OnCloseWindow(self, event):
         if self.FrontEntry.GetValue() == '' and self.BackEntry.GetValue() == '':
             event.Skip()
+            ans = wx_ID_YES
         else:
             # A card is being edited
             dlg = wx.MessageDialog(self, "You are editing a card.  Do you really want to quit.", "Warning",
