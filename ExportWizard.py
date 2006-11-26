@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/ExportWizard.py,v $
-# $Revision: 1.1 $
-# $Date: 2006/11/11 00:46:58 $
+# $Revision: 1.2 $
+# $Date: 2006/11/26 01:21:36 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import wx
@@ -61,39 +61,42 @@ class ExportTypePage(wiz.WizardPageSimple):
         return self.ExportTypeListBox.GetSelection()
 
 class FilePage(wiz.WizardPageSimple):
-    def __init__(self, parent, dir):
+    def __init__(self, parent, dir, typepage, chapterpage):
         wiz.WizardPageSimple.__init__(self, parent)
 
         self.dir = dir
+        self.typepage = typepage
+        self.chapterpage = chapterpage
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         label = wx.StaticText(self, -1, 'Choose file to export')
-        f = label.GetFont()
-        f.SetPointSize(12)
-        label.SetFont(f)
         sizer.Add(label, 0, wx.BOTTOM, 10)
 
         sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         label = wx.StaticText(self, -1, 'File: ')
-        self.FileTextCtrl = wx.TextCtrl(self, -1)
+        self.FileTextCtrl = wx.TextCtrl(self, -1, style = wx.TE_READONLY)
+
+        sizer1.Add(label, 0, wx.RIGHT | wx.CENTER, 5)
+        sizer1.Add(self.FileTextCtrl, 1, wx.RIGHT | wx.CENTER | wx.EXPAND, 10)
+
+        sizer.Add(sizer1, 0, wx.BOTTOM | wx.EXPAND, 10)
+
         button = wx.Button(self, ID_IW_FILE_PAGE_BROWSE, 'Browse')
         button.Bind(wx.EVT_BUTTON, self.OnBrowse)
 
-        sizer1.Add(label, 0, wx.RIGHT, 5)
-        sizer1.Add(self.FileTextCtrl, 1, wx.RIGHT, 10)
-        sizer1.Add(button)
-
-        sizer.Add(sizer1)
+        sizer.Add(button)
 
         self.SetSizer(sizer)
+        button.SetFocus()
 
     def OnBrowse(self, event):
         # The previous page
-        p = self.GetPrev()
-        wildcard = FlashCard.GetExportWildcard(p.GetData())
+        wildcard = FlashCard.GetExportWildcard(self.typepage.GetData())
 
         dlg = wx.FileDialog(self, message='Choose a file', defaultDir = self.dir, 
                     defaultFile='', wildcard=wildcard, style=wx.SAVE | wx.OVERWRITE_PROMPT)
+        # Set default file name = chapter
+        dlg.SetFilename(self.chapterpage.GetData())
 
         ans = dlg.ShowModal()
         if ans == wx.ID_OK:
@@ -103,7 +106,7 @@ class FilePage(wiz.WizardPageSimple):
             # On windows the dialog adds the extension automatically
             root, ext = os.path.splitext(filename)
             if ext == '':
-                filename = root+'.%s' % FlashCard.GetExportExt(p.GetData())
+                filename = root+'.%s' % FlashCard.GetExportExt(self.typepage.GetData())
 
             self.dir = os.path.dirname(filename)
             self.FileTextCtrl.SetValue(filename)
