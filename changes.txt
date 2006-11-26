@@ -1,6 +1,7 @@
 Version 0.3.0
 - Added import XML.
 - Added export XML.
+- Added export HTML (cards are exported in a table format by chapter)
 - Added wildcards support to import/export wizard.
 - Added shortcuts for inserting html tags in front and back text controlls.  Supported tags are bold, italic, underline, font red, font blue, font green.
 - Added a check if a card is being edited before closing the CardManagerDlg.
