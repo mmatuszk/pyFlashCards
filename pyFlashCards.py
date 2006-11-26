@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.8 $
-# $Date: 2006/11/23 17:58:46 $
+# $Revision: 1.9 $
+# $Date: 2006/11/26 01:24:19 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 
@@ -632,20 +632,24 @@ class FlashCardFrame(wx.Frame):
 
         bitmap = wx.Image('icons/pyFlashCards2-export.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         wizard = wiz.Wizard(self, -1, "Export Wizard", bitmap)
-        page1 = ew.ExportTypePage(wizard)
-        page2 = ew.FilePage(wizard, self.Config.get('directories', 'export_dir'))
-        page3 = ew.ChapterPage(wizard, self.CardSet.GetChapters())
+        page1 = ew.ChapterPage(wizard, self.CardSet.GetChapters())
+        page2 = ew.ExportTypePage(wizard)
+        page3 = ew.FilePage(wizard, self.Config.get('directories', 'export_dir'), page2, page1)
         wiz.WizardPageSimple_Chain(page1, page2)
         wiz.WizardPageSimple_Chain(page2, page3)
 
         if wizard.RunWizard(page1):
-            ExportType = page1.GetData()
-            ExportFile = page2.GetData()
-            ExportChapter = page3.GetData()
-            self.Config.set('directories', 'export_dir', os.path.dirname(ExportFile))
-            n = self.CardSet.Export(ExportType, ExportFile.encode('utf_8'), ExportChapter)
-            dlg = wx.MessageDialog(self, "%d cads exported" % n, "Export result", wx.OK | wx.ICON_INFORMATION)
-            dlg.ShowModal()
+            ExportChapter = page1.GetData()
+            ExportType = page2.GetData()
+            ExportFile = page3.GetData()
+            if ExportFile <> '':
+                self.Config.set('directories', 'export_dir', os.path.dirname(ExportFile))
+                n = self.CardSet.Export(ExportType, ExportFile.encode('utf_8'), ExportChapter)
+                dlg = wx.MessageDialog(self, "%d cads exported" % n, "Export result", wx.OK | wx.ICON_INFORMATION)
+                dlg.ShowModal()
+            else:
+                dlg = wx.MessageDialog(self, "You must select a file" % n, "Export result", wx.OK | wx.ICON_INFORMATION)
+                dlg.ShowModal()
 
         wizard.Destroy()
 
