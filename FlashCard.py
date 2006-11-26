@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.8 $
-# $Date: 2006/11/26 01:22:17 $
+# $Revision: 1.9 $
+# $Date: 2006/11/26 23:10:23 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import fileinput, codecs, os, copy, sys
@@ -165,7 +165,7 @@ class FlashCard:
             str += "<img src='%s'>" % self.FrontImage
         str += '<p><font'
         if face:
-            str+=' face='+face
+            str+=' face="'+face+'"'
         str += ' size=%d>' % size
         for line in self.FrontText.split('\n'):
             str += line+'<br>'
@@ -180,7 +180,7 @@ class FlashCard:
             str += "<img src='%s'>" % self.BackImage
         str += '<p><font'
         if face:
-            str+=' face='+face
+            str+=' face="'+face+'"'
         str += ' size=%d>' % size
         for line in self.BackText.split('\n'):
             str += line+'<br>'
