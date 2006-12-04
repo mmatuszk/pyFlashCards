@@ -8,3 +8,4 @@ Version 0.3.0
 - Added a check if a card is being edited before closing the CardManagerDlg.
 - Bug fix: canceling closing of the pyFlashCards main window did not actually cancel the action and the program would proceed to close without saving changes.
 - Bug fix: fonts face with spaces did not work properly without ""
+- Bug fix: chapters were not removed properly from chapters to study if all the cards from the that chapter were in box 1 or higher.
