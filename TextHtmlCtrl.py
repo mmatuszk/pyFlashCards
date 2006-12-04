@@ -27,6 +27,10 @@ class TextHtmlCtrl(wx.TextCtrl):
                 self.Color('green')
             if keycode is ord('E'):
                 self.Color('blue')
+            if keycode is ord('-'):
+                self.Subscript()
+            if keycode is ord('='):
+                self.Superscript()
 
         event.Skip()
 
@@ -65,5 +69,17 @@ class TextHtmlCtrl(wx.TextCtrl):
     def Color(self, color='red'):
         s_tag = '<font color=%s>' % color
         e_tag = '</font>'
+
+        self.InsertTag(s_tag, e_tag)
+
+    def Subscript(self):
+        s_tag = '<sub>'
+        e_tag = '</sub>'
+
+        self.InsertTag(s_tag, e_tag)
+
+    def Superscript(self):
+        s_tag = '<sup>'
+        e_tag = '</sup>'
 
         self.InsertTag(s_tag, e_tag)
