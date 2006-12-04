@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.9 $
-# $Date: 2006/11/26 23:10:23 $
+# $Revision: 1.10 $
+# $Date: 2006/12/04 00:12:07 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import fileinput, codecs, os, copy, sys
@@ -276,7 +276,7 @@ class FlashCardPool:
         self.ChapterList.append(chapter)
         self.CardList[chapter] = []
 
-    def AddCard(self, card, forc=False):
+    def AddCard(self, card, force=False):
         chapter = card.GetChapter()
         if chapter not in self.CardList.keys():
             raise FlashCardError("Chapter '%s' not in the pool" % chapter)
@@ -329,6 +329,7 @@ class FlashCardPool:
         return cards
 
     def RemoveCard(self, index):
+        print "Removing card from pool"
         for chapter in self.ChapterList:
             if len(self.CardList[chapter]) <= index:
                 index -= len(self.CardList[chapter])
@@ -346,6 +347,19 @@ class FlashCardPool:
                     del self.ChapterList[i]
                     break
 
+    def RemoveChapter(self, chapter):
+        if chapter not in self.ChapterList:
+            print('FlashCardPool.RemoveChapter: Chapter "%s" does not exist' % chapter)
+            return 
+        if len(self.CardList[chapter]) != 0:
+            raise FlashCardError('Chapter "%s" has cards in the pool' % chapter)
+
+        for c,i in zip(self.ChapterList, range(len(self.ChapterList))):
+            if c == chapter:
+                del self.CardList[chapter]
+                del self.ChapterList[i]
+                break
+
 class TestSet:
     def __init__(self, BoxSize=DefaultBoxSize):
         self.box = []
@@ -362,11 +376,9 @@ class TestSet:
     def AddChapter(self, chapter):
         self.box[0].AddChapter(chapter)
 
-    def RemoveChapter(self, chapter):
-        for card in self.CardList[chapter]:
-            card.SetBox(-1)
-
-        del self.CardList[chapter]
+    def RemoveChapterFromPool(self, chapter):
+        # Remove chapter from the pool list
+        self.box[0].RemoveChapter(chapter)
 
     def AddBox(self, MaxItems):
         id = len(self.box)
@@ -388,7 +400,8 @@ class TestSet:
 
     def PlaceCard(self, BoxIndex, card):
         self.box[BoxIndex].AddCard(card, True)
-
+        
+    # Function removes cards from study boxes
     def RemoveCards(self, cards):
         for card in cards:
             # First check if the card is being learned
@@ -405,6 +418,7 @@ class TestSet:
                     if BoxCard == card:
                         box.RemoveCard(i)
 
+    # Function removes a cards from study boxes
     def RemoveCard(self, card):
         # First check if the card is being learned
         if card == self.TestCard:
@@ -689,6 +703,7 @@ class FlashCardSet:
     def NotLearnChapter(self, chapter):
         self.saved = False
         self.TestSet.RemoveCards(self.Cards[chapter])
+        self.TestSet.RemoveChapterFromPool(chapter)
             
     def DeleteCard(self, chapter, index):
         self.saved = False
