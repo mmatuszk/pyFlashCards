@@ -15,22 +15,40 @@ class TextHtmlCtrl(wx.TextCtrl):
 
         if event.ControlDown() and not event.ShiftDown() \
                 and not event.AltDown():
-            if keycode is ord('B'):
+            if keycode == ord('B'):
                 self.Bold()
-            if keycode is ord ('U'):
+                return
+            if keycode == ord ('U'):
                 self.Underline()
-            if keycode is ord('I'):
+                return
+            if keycode == ord('I'):
                 self.Italic()
-            if keycode is ord('Q'):
+                return
+            if keycode == ord('Q'):
                 self.Color('red')
-            if keycode is ord('W'):
+                return
+            if keycode == ord('W'):
                 self.Color('green')
-            if keycode is ord('E'):
+                return
+            if keycode == ord('E'):
                 self.Color('blue')
             if keycode is ord('-'):
                 self.Subscript()
             if keycode is ord('='):
                 self.Superscript()
+                return
+            if keycode == ord('L'):
+                self.InsertLeftArrow()
+                return
+            if keycode == ord('P'):
+                self.InsertUpArrow()
+                return
+            if keycode == ord('R'):
+                self.InsertRightArrow()
+                return
+            if keycode == ord('D'):
+                self.InsertDownArrow()
+                return
 
         event.Skip()
 
@@ -83,3 +101,24 @@ class TextHtmlCtrl(wx.TextCtrl):
         e_tag = '</sup>'
 
         self.InsertTag(s_tag, e_tag)
+
+    # Insert a string
+    # Replace a any selected string
+    def InsertString(self, string):
+        s,e = self.GetSelection()
+
+        self.Replace(s, e, string)
+        return
+
+    def InsertLeftArrow(self):
+        self.InsertString(u'\u2190')
+
+    def InsertUpArrow(self):
+        self.InsertString(u'\u2191')
+
+    def InsertRightArrow(self):
+        self.InsertString(u'\u2192')
+
+    def InsertDownArrow(self):
+        self.InsertString(u'\u2193')
+
