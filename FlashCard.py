@@ -24,13 +24,14 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.10 $
-# $Date: 2006/12/04 00:12:07 $
+# $Revision: 1.11 $
+# $Date: 2007/09/03 14:12:12 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import fileinput, codecs, os, copy, sys
 import XMLDoc
 import htmlDoc
+import random
 
 if sys.platform == 'win32':
     zipcmd='7z'
@@ -51,6 +52,10 @@ ImportWildcard  = ['Text files (*.txt)|*.txt', 'XML files (*.xml)|*.xml']
 ExportTypeList  = ['XML file - chapter', 'HTML file - chapter']
 ExportWildcard  = ['XML files (*.xml)|*.xml', 'HTML files (*.html)|*.html']
 ExportExt       = ['xml', 'html']
+
+# Commands that can be used in front and back text of cards
+nab_cmd = '{nab}'
+ab_cmd  = '{ab}'
 
 def lindices(list):
     return range(len(list))
@@ -159,6 +164,8 @@ class FlashCard:
         return self.BackText
 
     def GetFrontHtml(self, face=None, size=5):
+        autobreak = True
+
         str = "<html><body>"
         #str += '<meta content="text/html"; charset="UTF-8">'
         if self.FrontImage:
@@ -168,12 +175,26 @@ class FlashCard:
             str+=' face="'+face+'"'
         str += ' size=%d>' % size
         for line in self.FrontText.split('\n'):
-            str += line+'<br>'
+            cmd = line.lstrip().rstrip()
+            if cmd == nab_cmd:
+                autobreak = False
+                continue
+            elif cmd == ab_cmd:
+                autobreak = True
+                continue
+
+            if autobreak:
+                str += line+'<br>'
+            else:
+                str += line
+
         str += "</font></p></body></html>"
 
         return str
 
     def GetBackHtml(self, face=None, size=5):
+        autobreak = True
+
         str = "<html><body>"
         #str += '<meta content="text/html"; charset="UTF-8">'
         if self.BackImage:
@@ -183,10 +204,41 @@ class FlashCard:
             str+=' face="'+face+'"'
         str += ' size=%d>' % size
         for line in self.BackText.split('\n'):
-            str += line+'<br>'
+            cmd = line.lstrip().rstrip()
+            if cmd == nab_cmd:
+                autobreak = False
+                continue
+            elif cmd == ab_cmd:
+                autobreak = True
+                continue
+
+            if autobreak:
+                str += line+'<br>'
+            else:
+                str += line
+
         str += "</font></p></body></html>"
 
         return str
+
+    def FrontTextFind(self, str, case=False):
+        if case:
+            FrontText = self.FrontText
+        else:
+            str = str.lower()
+            FrontText = self.FrontText.lower()
+
+        return FrontText.find(str)
+
+    def BackTextFind(self, str, case=False):
+        if case:
+            BackText = self.BackText
+        else:
+            str = str.lower()
+            BackText = self.BackText.lower()
+
+        return BackText.find(str)
+
 
 class FlashCardBox:
     def __init__(self, id, MaxItems=-1):
@@ -284,6 +336,10 @@ class FlashCardPool:
         card.SetBox(self.id)
         self.CardList[chapter].append(card)
         self.CardCount += 1
+
+    def Randomize(self):
+        for ch in self.ChapterList:
+            random.shuffle(self.CardList[ch])
 
     def PopCard(self):
         if len(self.ChapterList) == 0:
@@ -477,6 +533,9 @@ class TestSet:
 
         return count
 
+    def RandomizePool(self):
+        self.box[0].Randomize()
+
     def GetTestCard(self):
         return self.TestCard
 
@@ -484,6 +543,36 @@ class TestSet:
         return self.TestCardBox
 
     def NextTestCard(self):
+        found = False
+        if self.TestCard != None:
+            return self.TestCard
+        
+        for b,i in zip(self.box, range(len(self.box))):
+            if b.IsFull():
+                break
+
+        if b.IsFull():
+            self.TestCard = b.PopCard()
+            self.TestCardBox = i
+        else:
+            for b,i in zip(self.box, range(len(self.box))):
+                print "box ", i
+                if b.GetCardCount() > 0:
+                    self.TestCard = b.PopCard()
+                    if i == 0:
+                        self.TestCardBox = 1
+                    else:
+                        self.TestCardBox = i
+
+                    found = True
+                    break
+            if not found:
+                self.TestCard = None
+                self.TestCardBox = -1
+
+        return self.TestCard
+
+    def NextTestCard1(self):
         if self.TestCard != None:
             return self.TestCard
         
@@ -562,6 +651,7 @@ class FlashCardSet:
         self.ExportMap = {}
         self.ExportMap[ExportTypeList[0]] = self.ExportXML
         self.ExportMap[ExportTypeList[1]] = self.ExportHTML
+        #self.ExportMap[ExportTypeList[1]] = self.ExportHTML2
 
     def ClearAllData(self):
         self.ChapterList = []    
@@ -910,6 +1000,9 @@ class FlashCardSet:
 
     def GetStudyBox(self):
         return self.StudyBox
+
+    def RandomizePool(self):
+        self.TestSet.RandomizePool()
 
     def IsSaved(self):
         return self.saved
@@ -1318,6 +1411,45 @@ class FlashCardSet:
         f.close()
             
         return ct
+
+    # single column, w/ answer below the quesion
+    def ExportHTML2(self, filename, chapter):
+        ct = 0
+        Tag = htmlDoc.Tag
+
+        doc = htmlDoc.HtmlDocument()
+        doc.setHtmlTitle(chapter)
+
+        table=Tag.TABLE(None, '100%', 1, "#000000", 4, 0)
+        for card in self.Cards[chapter]:
+            tr = Tag.TR(None, "TOP")
+            td = Tag.TD(contents=None, width="50%")
+            for line in card.GetFrontText().split('\n'):
+                td.append(line)
+                td.append(Tag.BR())
+            tr.append(td)
+            table.append(tr)
+
+            tr = Tag.TR(None, "TOP")
+            td = Tag.TD(contents=None, width="50%")
+            for line in card.GetBackText().split('\n'):
+                td.append(line)
+                td.append(Tag.BR())
+            tr.append(td)
+            table.append(tr)
+
+            ct += 1
+
+        doc.append(table)
+
+        # Write the document to file
+        f = codecs.open(filename, 'w', 'utf_8')
+        #f = open(filename, 'w')
+        f.write(codecs.BOM_UTF8.decode('utf_8'))
+        doc.writeHtml(f)
+        f.close()
+            
+        return ct
     
     #-------------------------------------------------------------------------
     # Export specified chapter to the XML format supported by the
@@ -1346,6 +1478,8 @@ class FlashCardSet:
 
 	f.write('</FlashCards>')
 	f.close()
+
+	return index
 
 
 #        doc = XMLDoc.XMLDocument()

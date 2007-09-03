@@ -25,13 +25,14 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.9 $
-# $Date: 2006/11/26 01:24:19 $
+# $Revision: 1.10 $
+# $Date: 2007/09/03 14:12:24 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 
 import wx
 import os, user
+import types
 import ConfigParser
 
 import wx.html as html
@@ -39,6 +40,7 @@ import wx.wizard as wiz
 
 
 from CardManagerDlg import *
+from CardBrowserDlg import *
 from ChapterManagerDlg import *
 from LearningManagerDlg import *
 from BoxManagerDlg import *
@@ -66,21 +68,25 @@ ID_FILE_HIST_4                  = wx.NewId()
 ID_FILE_EXIT                    = wx.NewId()
 
 ID_CARDS_CARD_MANAGER           = wx.NewId()
+ID_CARDS_CARD_BROWSER           = wx.NewId()
 ID_CARDS_EDIT_TEST_CARD         = wx.NewId()
 ID_CARDS_CHAPTER_MANAGER        = wx.NewId()
 
 ID_LEARNING_LEARNING_MANAGER    = wx.NewId()
 ID_LEARNING_BOX_MANAGER         = wx.NewId()
+ID_LEARNING_RANDOMIZE           = wx.NewId()
 
 ID_TOOLS_VIEW_ANS               = wx.NewId()
 ID_TOOLS_DISP_DATA              = wx.NewId()
 
+ID_HELP_CONTENTS                = wx.NewId()
 ID_HELP_ABOUT                   = wx.NewId()
 
 ID_LEARN_SHOW_ANSWER            = wx.NewId()
 ID_LEARN_KNOW                   = wx.NewId()
 ID_LEARN_NOT_KNOW               = wx.NewId()
 ID_LEARN_NOT_AGAIN	            = wx.NewId()
+ID_LEARN_HIDE_ANSWER            = wx.NewId()
 
 ID_TEST_PANEL                   = wx.NewId()
 
@@ -95,7 +101,7 @@ ID_TP_BACK_FONT_SIZE    = wx.NewId()
 
 defext = 'mfc'
 wildcard = 'Flash Card files (*.%s)|*.%s' % (defext, defext)
-ConfigFile = 'flashcard.cfg'
+ConfigFileName = 'flashcard.cfg'
 
 ApplicationName = 'pyFlashCards'
 
@@ -115,7 +121,10 @@ TestHtml=\
 EmptyHtml="<html></html>"
 
 def AddMenuItemWithImage(menu, id, item, helpString, image):
-    img = wx.Image(image, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+    if type(image) == types.StringType:
+        img = wx.Image(image, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+    else:
+        img = image
     item = wx.MenuItem(menu, id, item, helpString)
     item.SetBitmap(img)
     menu.AppendItem(item)
@@ -130,8 +139,10 @@ class TestPanelEvent(wx.PyCommandEvent):
 
 
 class FlashCardFrame(wx.Frame):
-    def __init__(self, parent, id):
+    def __init__(self, parent, id, help):
         wx.Frame.__init__(self, parent, id, "Flash Cards", size=(800,600))
+
+        self.help = help
 
         self.LoadConfig()
 
@@ -174,7 +185,7 @@ class FlashCardFrame(wx.Frame):
     def LoadConfig(self):
         self.Config = ConfigParser.SafeConfigParser()
 
-        self.Config.read(ConfigFile)
+        self.Config.read(GetConfigFileName())
         # Window size
         if self.Config.has_section('window_size'):
             try:
@@ -219,9 +230,23 @@ class FlashCardFrame(wx.Frame):
             self.Config.set('directories', 'image_dir', user.home)
             self.Config.set('directories', 'import_dir', user.home)
             self.Config.set('directories', 'export_dir', user.home)
+        # Card browser
+        if self.Config.has_section('card_browser'):
+            try:
+                self.Config.getint('card_browser', 'width')
+            except:
+                self.Config.set('card_browser', 'width', `DefaultWinWidth`)
+            try:
+                self.Config.getint('card_browser', 'height')
+            except:
+                self.Config.set('card_browser', 'height', `DefaultWinHeight`)
+        else:
+            self.Config.add_section('card_browser')
+            self.Config.set('card_browser', 'width', `DefaultWinWidth`)
+            self.Config.set('card_browser', 'height', `DefaultWinHeight`)
 
     def WriteConfig(self):
-        f = open(ConfigFile, 'w')
+        f = open(GetConfigFileName(), 'w')
         self.Config.write(f)
         f.close()
 
@@ -244,12 +269,14 @@ class FlashCardFrame(wx.Frame):
         # File menu
         #-----------------------------------------------------------------------
         FileMenu = wx.Menu()
+        new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_MENU)
         AddMenuItemWithImage(FileMenu, ID_FILE_NEW, '&New\tCtrl+N',
                              'Create a new card file',
-                             'icons/new.png')
+                             new_bmp)
+        open_bmp =  wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_MENU)
         AddMenuItemWithImage(FileMenu, ID_FILE_OPEN, '&Open\tCtrl+O',
                              'Open an existing card file',
-                              'icons/open.png')
+                              open_bmp)
         FileMenu.Append(ID_FILE_CLOSE, 'Close', 'Close the card file\tCtrl+W')
         FileMenu.Enable(ID_FILE_CLOSE, False)
         FileMenu.AppendSeparator()
@@ -258,13 +285,15 @@ class FlashCardFrame(wx.Frame):
         FileMenu.Append(ID_FILE_EXPORT, 'Export', 'Export a card file')
         FileMenu.Enable(ID_FILE_EXPORT, False)
         FileMenu.AppendSeparator()
+        save_bmp =  wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_MENU)
         AddMenuItemWithImage(FileMenu, ID_FILE_SAVE, '&Save\tCtrl+S',
                              'Save the card file',
-                              'icons/save.png')
+                              save_bmp)
         FileMenu.Enable(ID_FILE_SAVE, False)
+        save_as_bmp =  wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE_AS, wx.ART_MENU)
         AddMenuItemWithImage(FileMenu, ID_FILE_SAVE_AS, 'S&ave as',
                              'Save file unde a new name',
-                              'icons/save_as.png')
+                              save_as_bmp)
         FileMenu.AppendSeparator()
         FileMenu.Append(ID_FILE_EXIT, 'E&xit', 'Exit program')
         FileMenu.Enable(ID_FILE_SAVE_AS, False)
@@ -289,6 +318,9 @@ class FlashCardFrame(wx.Frame):
         CardsMenu.Append(ID_CARDS_CARD_MANAGER, 'Card manager\tCtrl+M',
                                                 'Open the card manager')
         CardsMenu.Enable(ID_CARDS_CARD_MANAGER, False)
+        CardsMenu.Append(ID_CARDS_CARD_BROWSER, 'Card browser\tCtrl+W',
+                                                'Open the card browser')
+        CardsMenu.Enable(ID_CARDS_CARD_BROWSER, False)
         CardsMenu.Append(ID_CARDS_EDIT_TEST_CARD, 'Edit test card\tCtrl+E',
                                                 'Open card manager and edit test card')
         CardsMenu.Enable(ID_CARDS_EDIT_TEST_CARD, False)
@@ -312,6 +344,10 @@ class FlashCardFrame(wx.Frame):
         LearningMenu.Append(ID_LEARNING_BOX_MANAGER, 'Box manager\tCtrl+B',
                                                 'Open the box manager')
         LearningMenu.Enable(ID_LEARNING_BOX_MANAGER, False)
+        ###
+        LearningMenu.Append(ID_LEARNING_RANDOMIZE, 'Randomize pool\tCtrl+R',
+                                                'Randomize cards in the pool')
+        LearningMenu.Enable(ID_LEARNING_RANDOMIZE, False)
 
         MenuBar.Append(LearningMenu, '&Learning')
         self.LearningMenu = LearningMenu
@@ -335,21 +371,26 @@ class FlashCardFrame(wx.Frame):
         # Help menu
         #-----------------------------------------------------------------------
         HelpMenu = wx.Menu()
+        HelpMenu.Append(ID_HELP_CONTENTS, 'Contents\tF1')
         HelpMenu.Append(ID_HELP_ABOUT, 'About')
         MenuBar.Append(HelpMenu, '&Help')
 
 
         self.Bind(wx.EVT_MENU, self.OnOpenCardManager, id=ID_CARDS_CARD_MANAGER)
+        self.Bind(wx.EVT_MENU, self.OnOpenCardBrowser, id=ID_CARDS_CARD_BROWSER)
         self.Bind(wx.EVT_MENU, self.OnEditTestCard, id=ID_CARDS_EDIT_TEST_CARD)
         self.Bind(wx.EVT_MENU, self.OnOpenChapterManager, id=ID_CARDS_CHAPTER_MANAGER)
         self.Bind(wx.EVT_MENU, self.OnOpenLearningManager, 
                   id=ID_LEARNING_LEARNING_MANAGER)
         self.Bind(wx.EVT_MENU, self.OnOpenBoxManager, 
                   id=ID_LEARNING_BOX_MANAGER)
+        self.Bind(wx.EVT_MENU, self.OnRandomizePool,
+                  id=ID_LEARNING_RANDOMIZE)
         self.Bind(wx.EVT_MENU, self.OnViewAns, 
                   id=ID_TOOLS_VIEW_ANS)
         self.Bind(wx.EVT_MENU, self.OnDispData, 
                   id=ID_TOOLS_DISP_DATA)
+        self.Bind(wx.EVT_MENU, self.OnContents, id=ID_HELP_CONTENTS)
         self.Bind(wx.EVT_MENU, self.OnAbout, id=ID_HELP_ABOUT)
 
         self.SetMenuBar(MenuBar)
@@ -362,10 +403,12 @@ class FlashCardFrame(wx.Frame):
         self.FileMenu.Enable(ID_FILE_EXPORT, True)
 
         self.CardsMenu.Enable(ID_CARDS_CARD_MANAGER, True)
+        self.CardsMenu.Enable(ID_CARDS_CARD_BROWSER, True)
         self.CardsMenu.Enable(ID_CARDS_EDIT_TEST_CARD, True)
         self.CardsMenu.Enable(ID_CARDS_CHAPTER_MANAGER, True)
         self.LearningMenu.Enable(ID_LEARNING_LEARNING_MANAGER, True)
         self.LearningMenu.Enable(ID_LEARNING_BOX_MANAGER, True)
+        self.LearningMenu.Enable(ID_LEARNING_RANDOMIZE, True)
         self.ToolsMenu.Enable(ID_TOOLS_VIEW_ANS, True)
         self.ToolsMenu.Enable(ID_TOOLS_DISP_DATA, True)
 
@@ -377,10 +420,12 @@ class FlashCardFrame(wx.Frame):
         self.FileMenu.Enable(ID_FILE_EXPORT, False)
 
         self.CardsMenu.Enable(ID_CARDS_CARD_MANAGER, False)
+        self.CardsMenu.Enable(ID_CARDS_CARD_BROWSER, False)
         self.CardsMenu.Enable(ID_CARDS_EDIT_TEST_CARD, False)
         self.CardsMenu.Enable(ID_CARDS_CHAPTER_MANAGER, False)
         self.LearningMenu.Enable(ID_LEARNING_LEARNING_MANAGER, False)
         self.LearningMenu.Enable(ID_LEARNING_BOX_MANAGER, False)
+        self.LearningMenu.Enable(ID_LEARNING_RANDOMIZE, False)
         self.ToolsMenu.Enable(ID_TOOLS_DISP_VIEW_ANS, False)
         self.ToolsMenu.Enable(ID_TOOLS_DISP_DATA, False)
 
@@ -687,7 +732,7 @@ class FlashCardFrame(wx.Frame):
             dlg.ShowModal()
             return
 
-        dlg = CardManagerDlg(self, self.CardSet, self.Config)
+        dlg = CardManagerDlg(self, self.CardSet, self.Config, self.help)
         dlg.ShowModal()
         self.CardSet, self.Config = dlg.GetData()
         dlg.Destroy()
@@ -696,6 +741,20 @@ class FlashCardFrame(wx.Frame):
 
         if self.DispData:
             self.DispDataWin.Update()
+
+    def OnOpenCardBrowser(self, event):
+        if not self.CardSet:
+            return
+
+        if self.CardSet.GetChapterCount() == 0:
+            dlg = wx.MessageDialog(self, "Add some chapters first", "Error", wx.OK | wx.ICON_ERROR)
+            dlg.CenterOnParent(wx.BOTH)
+            dlg.ShowModal()
+            return
+
+        dlg = CardBrowserDlg(self, -1, self.CardSet, self.Config)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def OnEditTestCard(self, event):
         if not self.CardSet or not self.CardSet.GetTestCard():
@@ -707,7 +766,7 @@ class FlashCardFrame(wx.Frame):
             dlg.ShowModal()
             return
 
-        dlg = CardManagerDlg(self, self.CardSet, self.Config)
+        dlg = CardManagerDlg(self, self.CardSet, self.Config, self.help)
         dlg.SelectCard(self.CardSet.GetTestCard())
         dlg.ShowModal()
         self.CardSet, self.Config = dlg.GetData()
@@ -763,6 +822,11 @@ class FlashCardFrame(wx.Frame):
         if self.DispData:
             self.DispDataWin.Update()
 
+    def OnRandomizePool(self, event):
+        self.CardSet.RandomizePool()
+        dlg = wx.MessageDialog(self, "Pool randomized", "Info", wx.OK | wx.ICON_INFORMATION)
+        dlg.ShowModal()
+        
     def OnViewAns(self, event):
         if not self.CardSet or not self.CardSet.GetTestCard():
             return
@@ -770,7 +834,9 @@ class FlashCardFrame(wx.Frame):
         TestCard = self.CardSet.GetTestCard()
         dlg=ViewDlg.ViewDialog(None, -1, "View Answer")
         dlg.Maximize()
-        dlg.SetPage(TestCard.GetBackHtml())
+        face = self.CardSet.GetBackFontFace()
+        size = self.CardSet.GetBackFontSize()
+        dlg.SetPage(TestCard.GetBackHtml(face, size))
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -794,6 +860,9 @@ class FlashCardFrame(wx.Frame):
     def OnTestPanelDataChanged(self, event):
         if self.DispData:
             self.DispDataWin.Update()
+
+    def OnContents(self, event):
+        help.DisplayContents()
 
     def OnAbout(self, event):
         dlg = AboutDlg.AboutDlg(self)
@@ -834,11 +903,23 @@ class TestPanel(wx.Panel):
         sizer.Add(sizer1, 0, wx.CENTER)
 
         # New line in the GUI
+        splitter = wx.SplitterWindow(self, -1)
+
+        self.FrontDisp = html.HtmlWindow(splitter, -1, style=wx.SUNKEN_BORDER | wx.HSCROLL)
+        self.BackDisp = html.HtmlWindow(splitter, -1, style=wx.SUNKEN_BORDER | wx.HSCROLL)
+        
+        #splitter.SplitHorizontally(self.FrontDisp, self.BackDisp, 0)
+        splitter.SplitVertically(self.FrontDisp, self.BackDisp, 0)
+        splitter.SetMinimumPaneSize(20)
+
+        sizer.Add(splitter, 1, wx.EXPAND)
+
+        # New line in the GUI
         sizer1 = wx.BoxSizer(wx.HORIZONTAL)
 
         sizer11 = wx.BoxSizer(wx.VERTICAL)
         sizer111 = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, -1, 'Font:')
+        label = wx.StaticText(self, -1, 'Front font:')
         sizer111.Add(label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
         self.FrontFontFaceChoice = wx.Choice(self, ID_TP_FRONT_FONT_FACE, 
                                               choices=self.FontList)
@@ -848,15 +929,15 @@ class TestPanel(wx.Panel):
         self.FrontFontSizeChoice = wx.Choice(self, ID_TP_FRONT_FONT_SIZE,
                                               choices=self.FontSizeList)
         sizer111.Add(self.FrontFontSizeChoice, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-        self.FrontDisp = html.HtmlWindow(self, -1, style=wx.SUNKEN_BORDER | wx.HSCROLL)
+        #self.FrontDisp = html.HtmlWindow(self, -1, style=wx.SUNKEN_BORDER | wx.HSCROLL)
 
         sizer11.Add(sizer111, 0)
-        sizer11.Add(self.FrontDisp, 1, wx.EXPAND)
+        #sizer11.Add(self.FrontDisp, 1, wx.EXPAND)
         sizer1.Add(sizer11, 1, wx.EXPAND)
 
         sizer11 = wx.BoxSizer(wx.VERTICAL)
         sizer111 = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, -1, 'Font: ')
+        label = wx.StaticText(self, -1, 'Back font: ')
         sizer111.Add(label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
         self.BackFontFaceChoice = wx.Choice(self, ID_TP_BACK_FONT_FACE, 
                                               choices=self.FontList)
@@ -866,13 +947,14 @@ class TestPanel(wx.Panel):
         self.BackFontSizeChoice = wx.Choice(self, ID_TP_BACK_FONT_SIZE,
                                               choices=self.FontSizeList)
         sizer111.Add(self.BackFontSizeChoice, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-        self.BackDisp = html.HtmlWindow(self, -1, style=wx.SUNKEN_BORDER | wx.HSCROLL)
+        #self.BackDisp = html.HtmlWindow(self, -1, style=wx.SUNKEN_BORDER | wx.HSCROLL)
 
         sizer11.Add(sizer111, 0)
-        sizer11.Add(self.BackDisp, 1, wx.EXPAND)
+        #sizer11.Add(self.BackDisp, 1, wx.EXPAND)
         sizer1.Add(sizer11, 1, wx.EXPAND)
 
-        sizer.Add(sizer1, 1, wx.EXPAND)
+        #sizer.Add(sizer1, 1, wx.EXPAND)
+        sizer.Add(sizer1, 0, wx.EXPAND)
 
         # New line in the GUI
         sizer1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -881,20 +963,25 @@ class TestPanel(wx.Panel):
         self.KnowButton = wx.Button(self, ID_LEARN_KNOW, "Know")
         self.NotKnowButton = wx.Button(self, ID_LEARN_NOT_KNOW, "Don't know")
         self.NotAgainButton = wx.Button(self, ID_LEARN_NOT_AGAIN, "Don't ask again")
+        self.HideAnswerButton = wx.Button(self, ID_LEARN_HIDE_ANSWER,
+                                          'Hide answer')
         self.ShowAnswerButton.Disable()
         self.KnowButton.Show(False)
         self.NotKnowButton.Show(False)
         self.NotAgainButton.Show(False)
+        self.HideAnswerButton.Show(False)
 
         self.Bind(wx.EVT_BUTTON, self.OnShowAnswer, self.ShowAnswerButton)
         self.Bind(wx.EVT_BUTTON, self.OnKnow, self.KnowButton)
         self.Bind(wx.EVT_BUTTON, self.OnNotKnow, self.NotKnowButton)
         self.Bind(wx.EVT_BUTTON, self.OnNotAgain, self.NotAgainButton)
+        self.Bind(wx.EVT_BUTTON, self.OnHideAnswer, self.HideAnswerButton)
 
         sizer1.Add(self.ShowAnswerButton)
         sizer1.Add(self.KnowButton)
         sizer1.Add(self.NotKnowButton)
         sizer1.Add(self.NotAgainButton)
+        sizer1.Add(self.HideAnswerButton)
 
         sizer.Add(sizer1, 0, wx.CENTER)
         
@@ -1149,15 +1236,29 @@ class TestPanel(wx.Panel):
     def OnNotAgain(self, event):
         self.NotAgain()
 
+    def HideAnswer(self):
+        self.BackDisp.SetPage('')
+        self.HideKnowButtons()
+        self.ShowAnswerButton.Show(True)
+        self.Layout()
+        self.SetFocusIgnoringChildren()
+
+        self.State = ID_TEST_PANEL_STATE_SHOW_QUESTION
+
+    def OnHideAnswer(self, event):
+        self.HideAnswer()
+
     def HideKnowButtons(self):
         self.KnowButton.Show(False)
         self.NotKnowButton.Show(False)
         self.NotAgainButton.Show(False)
+        self.HideAnswerButton.Show(False)
 
     def ShowKnowButtons(self):
         self.KnowButton.Show(True)
         self.NotKnowButton.Show(True)
         self.NotAgainButton.Show(True)
+        self.HideAnswerButton.Show(True)
         
     def SetCardSet(self, CardSet):
         self.CardSet = CardSet
@@ -1218,9 +1319,33 @@ class TestPanel(wx.Panel):
         self.CardSet.SetBackFontSize(size)
         self.UpdateBackDisp()
 
+# Function checks if the user data directory exists.  If it does not it 
+# creastes a new one.
+def CheckUserDataDir():
+    sp = wx.StandardPaths.Get()
+    UserDataDir = sp.GetUserDataDir()
+    if not os.path.exists(UserDataDir):
+        print 'Creating %s' % UserDataDir
+        os.makedirs(UserDataDir)
+
+def GetConfigFileName():
+    sp = wx.StandardPaths.Get()
+    UserDataDir = sp.GetUserDataDir()
+    return os.path.join(UserDataDir, ConfigFileName)
+
 if __name__ == '__main__':
     print os.getcwd()
     app = wx.PySimpleApp()
-    win = FlashCardFrame(None, ID_FLASH_CARD_FRAME)
+    wx.GetApp().SetAppName('pyFlashCards')
+    CheckUserDataDir()
+    # Create help manager
+    wx.FileSystem.AddHandler(wx.ZipFSHandler())
+    help = wx.html.HtmlHelpController()
+    sp = wx.StandardPaths.Get()
+    UserDataDir = sp.GetUserDataDir()
+    help.SetTempDir(UserDataDir)
+    help.AddBook('help.zip', 1)
+
+    win = FlashCardFrame(None, ID_FLASH_CARD_FRAME, help)
     win.Show()
     app.MainLoop()

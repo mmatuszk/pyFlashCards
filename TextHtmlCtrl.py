@@ -32,9 +32,20 @@ class TextHtmlCtrl(wx.TextCtrl):
                 return
             if keycode == ord('E'):
                 self.Color('blue')
+                return
+            if keycode == ord('M'):
+                self.TableRowShort()
+                return
+            if keycode == ord('N'):
+                self.TableDataShort()
+                return
+            if keycode == ord('J'):
+                self.Break()
+                return
             if keycode is ord('-'):
                 self.Subscript()
-            if keycode is ord('='):
+                return
+            if keycode is ord('+'):
                 self.Superscript()
                 return
             if keycode == ord('L'):
@@ -48,6 +59,12 @@ class TextHtmlCtrl(wx.TextCtrl):
                 return
             if keycode == ord('D'):
                 self.InsertDownArrow()
+                return
+            if keycode == ord('K'):
+                self.InsertWarning()
+                return
+            if keycode == ord('0'):
+                self.InsertDegree()
                 return
 
         event.Skip()
@@ -102,6 +119,15 @@ class TextHtmlCtrl(wx.TextCtrl):
 
         self.InsertTag(s_tag, e_tag)
 
+    def TableRowShort(self):
+        self.InsertString('<tr>')
+
+    def TableDataShort(self):
+        self.InsertString('<td valign=top>')
+
+    def Break(self):
+        self.InsertString('<br>')
+
     # Insert a string
     # Replace a any selected string
     def InsertString(self, string):
@@ -122,3 +148,8 @@ class TextHtmlCtrl(wx.TextCtrl):
     def InsertDownArrow(self):
         self.InsertString(u'\u2193')
 
+    def InsertWarning(self):
+        self.InsertString(u'\u26A0')
+
+    def InsertDegree(self):
+        self.InsertString(u"\u00B0")

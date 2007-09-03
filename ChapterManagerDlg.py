@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/ChapterManagerDlg.py,v $
-# $Revision: 1.3 $
-# $Date: 2006/10/29 23:40:40 $
+# $Revision: 1.4 $
+# $Date: 2007/09/03 14:11:36 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 
@@ -44,8 +44,9 @@ class ChapterManagerDlg(wx.Dialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wx.Dialog.__init__(self, id=wxID_CHAPTERMANAGERDLG,
-              name=u'ChapterManagerDlg', parent=prnt, pos=wx.Point(466, 264),
-              size=wx.Size(372, 383), style=wx.DEFAULT_DIALOG_STYLE,
+              name=u'ChapterManagerDlg', parent=prnt, pos=wx.Point(630, 421),
+              size=wx.Size(364, 345),
+              style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
               title=u'Chapter Manager')
         self.SetClientSize(wx.Size(364, 345))
 
