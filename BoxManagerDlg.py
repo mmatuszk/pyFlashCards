@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/BoxManagerDlg.py,v $
-# $Revision: 1.3 $
-# $Date: 2006/10/29 23:40:40 $
+# $Revision: 1.4 $
+# $Date: 2008/10/04 21:29:51 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import wx

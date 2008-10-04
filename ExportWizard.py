@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/ExportWizard.py,v $
-# $Revision: 1.2 $
-# $Date: 2006/11/26 01:21:36 $
+# $Revision: 1.3 $
+# $Date: 2008/10/04 21:29:51 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import wx

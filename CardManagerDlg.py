@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/CardManagerDlg.py,v $
-# $Revision: 1.8 $
-# $Date: 2007/09/03 14:11:11 $
+# $Revision: 1.9 $
+# $Date: 2008/10/04 21:29:51 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import wx

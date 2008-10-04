@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.11 $
-# $Date: 2007/09/03 14:12:12 $
+# $Revision: 1.12 $
+# $Date: 2008/10/04 21:29:51 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import fileinput, codecs, os, copy, sys
