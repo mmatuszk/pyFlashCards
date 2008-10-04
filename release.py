@@ -32,8 +32,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/release.py,v $
-# $Revision: 1.1 $
-# $Date: 2006/10/30 00:48:55 $
+# $Revision: 1.2 $
+# $Date: 2008/10/04 22:29:44 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import getopt, sys, os
@@ -74,7 +74,7 @@ def main():
     pipe=os.popen4(cmd)
 
     
-    code_dest = 'FlashCards'+'_%g_%g_%g'%rev+'.tgz'
+    code_dest = 'FlashCards'+'-%g.%g.%g'%rev+'.tgz'
     cmd = 'cd .. ; tar -czf %s %s' % (code_dest, 'FlashCards')
     os.system(cmd)
 
