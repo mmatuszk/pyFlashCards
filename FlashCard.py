@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.14 $
-# $Date: 2008/10/09 22:25:38 $
+# $Revision: 1.15 $
+# $Date: 2008/10/09 22:33:05 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import fileinput, codecs, os, copy, sys
@@ -304,7 +304,320 @@ class FlashCardBox:
             return True
         else:
             return False
+class FlashCardPool:
+    def __init__(self, id, MaxItems=-1):
+        self.id = id
+        self.ChapterList = []
+        self.CardList = {}
+        self.CardCount = 0
 
+    def AddChapter(self, chapter):
+        if chapter in self.CardList.keys():
+            raise FlashCardError("Chapter '%s' already exisits" % chapter)
+
+        self.ChapterList.append(chapter)
+        self.CardList[chapter] = []
+
+    def AddCard(self, card, force=False):
+        chapter = card.GetChapter()
+        if chapter not in self.CardList.keys():
+            raise FlashCardError("Chapter '%s' not in the pool" % chapter)
+
+        card.SetBox(self.id)
+        self.CardList[chapter].append(card)
+        self.CardCount += 1
+
+    def Randomize(self):
+        for ch in self.ChapterList:
+            random.shuffle(self.CardList[ch])
+
+    def PopCard(self):
+        if len(self.ChapterList) == 0:
+            return None
+            #raise FlashCardError("Pool empty")
+
+        # Find the first chapter with cards still in it
+        for chapter in self.ChapterList:
+            if len(self.CardList[chapter]) > 0:
+                break
+
+        # No cards remain in the pool
+        if len(self.CardList[chapter]) == 0:
+            return None
+            #raise FlashCardError("Pool empty")
+
+        card = self.CardList[chapter][0]
+        del self.CardList[chapter][0]
+        self.CardCount -= 1
+        return card
+
+    def IsFull(self):
+        return False
+
+    def GetId(self):
+        return self.id
+
+    def SetCapacity(self):
+        return
+
+    def GetCapacity(self):
+        return -1
+
+    def GetCardCount(self):
+        return self.CardCount
+
+    def GetCards(self):
+        cards = []
+
+        for chapter in self.ChapterList:
+            cards += self.CardList[chapter]
+
+        return cards
+
+    def RemoveCard(self, index):
+        print "Removing card from pool"
+        for chapter in self.ChapterList:
+            if len(self.CardList[chapter]) <= index:
+                index -= len(self.CardList[chapter])
+            else:
+                break
+
+        self.CardList[chapter][index].SetBox(-1)
+        del self.CardList[chapter][index]
+        self.CardCount -= 1
+
+        if len(self.CardList[chapter]) == 0:
+            for c,i in zip(self.ChapterList, range(len(self.ChapterList))):
+                if c == chapter:
+                    del self.CardList[chapter]
+                    del self.ChapterList[i]
+                    break
+
+    def RemoveChapter(self, chapter):
+        if chapter not in self.ChapterList:
+            print('FlashCardPool.RemoveChapter: Chapter "%s" does not exist' % chapter)
+            return 
+        if len(self.CardList[chapter]) != 0:
+            raise FlashCardError('Chapter "%s" has cards in the pool' % chapter)
+
+        for c,i in zip(self.ChapterList, range(len(self.ChapterList))):
+            if c == chapter:
+                del self.CardList[chapter]
+                del self.ChapterList[i]
+                break
+
+class TestSet:
+    def __init__(self, BoxSize=DefaultBoxSize):
+        self.box = []
+        self.TestCard = None
+        self.TestCardBox = -1
+
+        # Create the card pool
+        self.box.append(FlashCardPool(0))
+
+        # Create test boxes
+        for s, id in zip(BoxSize, range(1,len(BoxSize)+1)):
+            self.box.append(FlashCardBox(id, s))
+
+    def AddChapter(self, chapter):
+        self.box[0].AddChapter(chapter)
+
+    def RemoveChapterFromPool(self, chapter):
+        # Remove chapter from the pool list
+        self.box[0].RemoveChapter(chapter)
+
+    def AddBox(self, MaxItems):
+        id = len(self.box)
+        self.box.append(FlashCardBox(id, MaxItems))
+        return id
+
+    def AddCard(self, card):
+        if card.GetBox() < 0:
+            self.box[0].AddCard(card)
+        else:
+            raise FlashCardError('Cannot add card, it is already used')
+
+    def AddCards(self, cards):
+        for c in cards:
+            if c.GetBox() < 0:
+                self.box[0].AddCard(c)
+            else:
+                raise FlashCardError('Cannot add card, it is already used')
+
+    def PlaceCard(self, BoxIndex, card):
+        self.box[BoxIndex].AddCard(card, True)
+        
+    # Function removes cards from study boxes
+    def RemoveCards(self, cards):
+        for card in cards:
+            # First check if the card is being learned
+                if card == self.TestCard:
+                    self.TestCard = None
+                    self.TestCardBox = -1
+                    card.SetBox(-1)
+                else:
+                    box = self.box[card.GetBox()]
+                    for BoxCard, i in zip(box.GetCards(), range(box.GetCardCount())):
+                        if BoxCard == card:
+                            break
+                    
+                    if BoxCard == card:
+                        box.RemoveCard(i)
+
+    # Function removes a cards from study boxes
+    def RemoveCard(self, card):
+        # First check if the card is being learned
+        if card == self.TestCard:
+            self.TestCard = None
+            self.TestCardBox = -1
+            card.SetBox(-1)
+        else:
+            box = self.box[card.GetBox()]
+            for BoxCard, i in zip(box.GetCards(), range(box.GetCardCount())):
+                if BoxCard == card:
+                    break
+            
+            if BoxCard == card:
+                box.RemoveCard(i)
+
+    def SetTestCard(self, TestCard):
+        self.TestCard = TestCard
+
+    def SetTestCardBox(self, TestCardBox):
+        self.TestCardBox = TestCardBox
+
+    def GetBoxes(self):
+        return self.box
+
+    def GetBoxCardCount(self, index):
+        count = self.box[index].GetCardCount()
+        
+        #-----------------------------------------------------------------------
+        # If the card is presently tested we should consider it in the box
+        #-----------------------------------------------------------------------
+        if self.TestCard and self.TestCard.GetBox() == index:
+            count += 1
+            
+        return count
+        
+
+    def SetBoxCapacity(self, index, max):
+        self.box[index].SetCapacity(max)
+
+    def GetBoxCapacity(self, index):
+        return self.box[index].GetCapacity()
+    #---------------------------------------------------------------------------
+    # GetCardCount
+    #
+    # Function returns the number of cards in the card set
+    #---------------------------------------------------------------------------
+    def GetCardCount(self):
+        count = 0
+        for box in self.box:
+            count += box.GetCardCount()
+
+        # The test card is not part of any box so we need to take care of it
+        # separately
+        if self.TestCard:
+            count += 1
+
+        return count
+
+    def RandomizePool(self):
+        self.box[0].Randomize()
+
+    def GetTestCard(self):
+        return self.TestCard
+
+    def GetTestCardBox(self):
+        return self.TestCardBox
+
+    def NextTestCard(self):
+        found = False
+        if self.TestCard != None:
+            return self.TestCard
+        
+        for b,i in zip(self.box, range(len(self.box))):
+            if b.IsFull():
+                break
+
+        if b.IsFull():
+            self.TestCard = b.PopCard()
+            self.TestCardBox = i
+        else:
+            for b,i in zip(self.box, range(len(self.box))):
+                print "box ", i
+                if b.GetCardCount() > 0:
+                    self.TestCard = b.PopCard()
+                    if i == 0:
+                        self.TestCardBox = 1
+                    else:
+                        self.TestCardBox = i
+
+                    found = True
+                    break
+            if not found:
+                self.TestCard = None
+                self.TestCardBox = -1
+
+        return self.TestCard
+
+    def NextTestCard1(self):
+        if self.TestCard != None:
+            return self.TestCard
+        
+        for b,i in zip(self.box, range(len(self.box))):
+            if b.IsFull():
+                break
+
+        if b.IsFull():
+            self.TestCard = b.PopCard()
+            self.TestCardBox = i
+        else:
+            card = self.box[0].PopCard()
+            if card == None:
+                self.TestCard = None
+                self.TestCardBox = -1
+            else:
+                self.TestCard = card
+                self.TestCardBox = 1
+
+        return self.TestCard
+
+    def PromoteTestCard(self):
+        if self.TestCard == None:
+            return
+
+        # We reached the last box
+        if self.TestCardBox == len(self.box)-1:
+            return
+        else:
+            self.box[self.TestCardBox+1].AddCard(self.TestCard)
+            self.TestCard = None
+            self.TestCardBox = -1
+
+    def PromoteTestCardToLastBox(self):
+        if self.TestCard == None:
+            return
+
+        # We reached the last box
+        if self.TestCardBox == len(self.box)-1:
+            return
+        else:
+            lastBox = len(self.box)-1
+            self.box[lastBox].AddCard(self.TestCard)
+            self.TestCard = None
+            self.TestCardBox = -1
+
+    def DemoteTestCard(self):
+        if self.TestCard == None:
+            return
+
+        # Put any card in box one
+        self.box[1].AddCard(self.TestCard)
+
+        self.TestCard = None
+        self.TestCardBox = -1
 
 class FlashCardSet:
     def __init__(self):
