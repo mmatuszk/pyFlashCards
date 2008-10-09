@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.10 $
-# $Date: 2007/09/03 14:12:24 $
+# $Revision: 1.11 $
+# $Date: 2008/10/09 22:34:51 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 
@@ -99,7 +99,7 @@ ID_TP_FRONT_FONT_SIZE   = wx.NewId()
 ID_TP_BACK_FONT_FACE    = wx.NewId()
 ID_TP_BACK_FONT_SIZE    = wx.NewId()
 
-defext = 'mfc'
+defext = 'ofc'
 wildcard = 'Flash Card files (*.%s)|*.%s' % (defext, defext)
 ConfigFileName = 'flashcard.cfg'
 
@@ -537,6 +537,8 @@ class FlashCardFrame(wx.Frame):
         self.GenerateTitle()
 
     def MakeNewTestSet(self):
+        if self.CardSet:
+            self.CardSet.Close()
         self.CardSet = FlashCard.FlashCardSet()
         self.TestPanel.SetCardSet(self.CardSet)
         self.TestPanel.StartTest()
@@ -605,6 +607,7 @@ class FlashCardFrame(wx.Frame):
         print win.GetName()
 
     def CloseCardSet(self):
+        self.CardSet.Close()
         self.CardSet = None
         self.filename = None
         self.TestPanel.Show(False)
