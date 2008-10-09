@@ -24,21 +24,14 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.13 $
-# $Date: 2008/10/04 21:38:25 $
+# $Revision: 1.14 $
+# $Date: 2008/10/09 22:25:38 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import fileinput, codecs, os, copy, sys
 import XMLDoc
 import htmlDoc
 import random
-
-if sys.platform == 'win32':
-    zipcmd='7z'
-elif sys.platform == 'darwin':
-    zipcmd = './7za.mac'
-else:
-    zipcmd='./7z'
 
 debug_save = False
 
@@ -333,7 +326,11 @@ class FlashCardSet:
         self.ExportMap = {}
         self.ExportMap[ExportTypeList[0]] = self.ExportXML
         self.ExportMap[ExportTypeList[1]] = self.ExportHTML
-        #self.ExportMap[ExportTypeList[1]] = self.ExportHTML2
+        self.ExportMap[ExportTypeList[1]] = self.ExportHTML2
+
+    def Close(self):
+        print "Close"
+        self.RemoveTmpDir()
 
     def Close(self):
         self.RemoveTmpDir()
@@ -360,7 +357,6 @@ class FlashCardSet:
         self.StudyBox = 0
 
     def MakeTmpDir(self):
-        self.RemoveTmpDir()
         os.mkdir(self.tmpdir)
         os.mkdir(self.picdir_abs)
 
@@ -469,7 +465,7 @@ class FlashCardSet:
     def AddCards(self, chapter, cards):
         self.saved = False
         for c in cards:
-            self.AddCard(chapter, card)
+            self.AddCard(chapter, c)
 
     def LearnChapter(self, chapter):
         self.saved = False
@@ -694,35 +690,28 @@ class FlashCardSet:
         return self.saved
 
     def Save(self, filename):
-        self.SaveData(self.datafile)
+        self.SaveData(self.datafile_abs)
 
         if os.path.exists(filename):
             os.remove(filename)
 
         # Make the zip command
-        cmd = 'tar -cjf %s -C % % %' % (filename, self.tmpdir, self.picdir, self.datafile)
+        cmd = 'tar -cjf %s -C %s %s %s' % (filename, self.tmpdir, self.picdir, self.datafile)
         print cmd
+        os.system(cmd)
 
         self.saved = True
 
     def Load(self, filename):    
         print "Load: ", filename
+        # First remove temp directory, then remake it
         self.RemoveTmpDir()
-        #cmd = zipcmd+' x '
-        cmd = zipcmd+' -xjf'
-        cmd += '"'+filename+'"'
-        #cmd += ' -o'+self.tmpdir
+        self.MakeTmpDir()
+        cmd = 'tar -xjf %s -C %s' % (filename, self.tmpdir)
         print cmd
-        stdin, stdout, stderr = os.popen3(cmd)
-        # read stdout to make sure that the command finishes before we continue
-        # It worked without reading on windows, but on Linux it we tried to read
-        # tmp1/data.xml before the extract command completed
-        out = stdout.read()
-        err = stderr.read()
-        print out
-        print err
-        #self.LoadData(self.datafile)
-        self.LoadData('tmp1/data.xml')
+        os.system(cmd)
+
+        self.LoadData(self.datafile_abs)
 
         self.saved = True
 
