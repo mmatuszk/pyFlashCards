@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/CardManagerDlg.py,v $
-# $Revision: 1.9 $
-# $Date: 2008/10/04 21:29:51 $
+# $Revision: 1.10 $
+# $Date: 2008/10/11 17:44:15 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 import wx
@@ -160,8 +160,8 @@ class CardManagerDlg(wx.Dialog):
 
         # entry sizer: commit/cancel
         entry_sizer_row = wx.BoxSizer(wx.HORIZONTAL)
-        entry_sizer_row.Add(self.CommitCardBtn)
-        entry_sizer_row.Add(self.CancelCardBtn)
+        entry_sizer_row.Add(self.CommitCardBtn, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+        entry_sizer_row.Add(self.CancelCardBtn, 0, wx.ALIGN_CENTER | wx.ALL, 10)
 
         sizer.Add(entry_sizer_row, 0, wx.ALIGN_CENTER)
 
@@ -254,13 +254,13 @@ class CardManagerDlg(wx.Dialog):
 
         return HelpButton
 
-    def _init_ctrls(self, prnt):
+    def _init_ctrls(self, prnt, size):
         # This function was first generated using Boa constructor
         # I changed it, but kept a lot of code to save time so it looks
         # a bit strange
         wx.Dialog.__init__(self, id=wxID_CARDMANAGERDLG, 
               name=u'CardManagerDlg',
-              parent=prnt, size=wx.Size(1100, 700),
+              parent=prnt, size=size,
               style=wx.TAB_TRAVERSAL | wx.DEFAULT_DIALOG_STYLE |
               wx.RESIZE_BORDER,
               title=u'Card Manager')
@@ -293,14 +293,18 @@ class CardManagerDlg(wx.Dialog):
 
         self.SetSizer(sizer)
 
-    def __init__(self, parent, CardSet, Config, help):
-        # Call the boa generate function to initialize controls
-        self._init_ctrls(parent)
-        
+    def __init__(self, parent, CardSet, Config, help, size=(1024, 700)):
         self.help = help
         self.CardSet = CardSet
         self.Config = Config
+        if Config:
+            w = self.Config.getint('card_browser', 'width')
+            h = self.Config.getint('card_browser', 'height')
+            size = (w, h)
 
+        # Call the boa generate function to initialize controls
+        self._init_ctrls(parent, size)
+        
         self.ResetImageVars()
 
         # CardEditIndex is used to store the index of a card that is being
@@ -331,7 +335,9 @@ class CardManagerDlg(wx.Dialog):
         # for wxGTK
         self.CardListCtrl.Bind(wx.EVT_RIGHT_UP, self.OnRightClick)
 
-        # Bind the OnCloseWindow in order to check in edited cards is saved
+        # Bind the OnCloseWindow in order to
+        #   1. check in edited cards is saved
+        #   2. save current window size
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
         # Dialog shortcuts
@@ -795,6 +801,10 @@ class CardManagerDlg(wx.Dialog):
             ans = wx.ID_YES
 
         if ans == wx.ID_YES:
+            if self.Config:
+                w, h = self.GetSize()
+                self.Config.set('card_browser', 'width', `w`)
+                self.Config.set('card_browser', 'height', `h`)
             event.Skip()
 
     def OnFindText(self, event):
