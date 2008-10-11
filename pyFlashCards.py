@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.11 $
-# $Date: 2008/10/09 22:34:51 $
+# $Revision: 1.12 $
+# $Date: 2008/10/11 17:46:37 $
 # $Author: marcin $
 #-------------------------------------------------------------------------------
 
@@ -182,6 +182,9 @@ class FlashCardFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
+        # Open a test files
+        self.UtilOpenTestFile()
+
     def LoadConfig(self):
         self.Config = ConfigParser.SafeConfigParser()
 
@@ -244,6 +247,21 @@ class FlashCardFrame(wx.Frame):
             self.Config.add_section('card_browser')
             self.Config.set('card_browser', 'width', `DefaultWinWidth`)
             self.Config.set('card_browser', 'height', `DefaultWinHeight`)
+
+        # Card browser
+        if self.Config.has_section('card_manager'):
+            try:
+                self.Config.getint('card_manager', 'width')
+            except:
+                self.Config.set('card_manager', 'width', `DefaultWinWidth`)
+            try:
+                self.Config.getint('card_manager', 'height')
+            except:
+                self.Config.set('card_manager', 'height', `DefaultWinHeight`)
+        else:
+            self.Config.add_section('card_manager')
+            self.Config.set('card_manager', 'width', `DefaultWinWidth`)
+            self.Config.set('card_manager', 'height', `DefaultWinHeight`)
 
     def WriteConfig(self):
         f = open(GetConfigFileName(), 'w')
@@ -315,7 +333,7 @@ class FlashCardFrame(wx.Frame):
         # Cards menu
         #-----------------------------------------------------------------------
         CardsMenu = wx.Menu()
-        CardsMenu.Append(ID_CARDS_CARD_MANAGER, 'Card manager\tCtrl+M',
+        CardsMenu.Append(ID_CARDS_CARD_MANAGER, 'Card manager\tCtrl+K',
                                                 'Open the card manager')
         CardsMenu.Enable(ID_CARDS_CARD_MANAGER, False)
         CardsMenu.Append(ID_CARDS_CARD_BROWSER, 'Card browser\tCtrl+W',
@@ -871,6 +889,20 @@ class FlashCardFrame(wx.Frame):
         dlg = AboutDlg.AboutDlg(self)
         dlg.ShowModal()
 
+    #-----------------------------------------------------------------------------------
+    # The functions below are utilities functions to help develop the program.  They
+    # have no use in publicly released software.  They all start with Util
+    #-----------------------------------------------------------------------------------
+    def UtilOpenTestFile(self):
+        self.filename = 'test/file1.ofc'
+        self.CardSet = FlashCard.FlashCardSet()
+        self.CardSet.Load(self.filename)
+        self.TestPanel.SetCardSet(self.CardSet)
+        self.TestPanel.Show(True)
+        self.TestPanel.StartTest()
+        self.Layout()
+        
+        self.EnableDataMenu()
 
 class TestPanel(wx.Panel):
     def __init__(self, parent, id, CardSet):
