@@ -25,9 +25,9 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.12 $
-# $Date: 2008/10/11 17:46:37 $
-# $Author: marcin $
+# $Revision: 1.13 $
+# $Date: 2008/10/18 15:55:54 $
+# $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
 import wx
@@ -1018,7 +1018,7 @@ class TestPanel(wx.Panel):
         sizer1.Add(self.NotAgainButton)
         sizer1.Add(self.HideAnswerButton)
 
-        sizer.Add(sizer1, 0, wx.CENTER)
+        sizer.Add(sizer1, 0, wx.CENTER | wx.BOTTOM, 10)
         
         self.SetAutoLayout(True)
         self.SetSizerAndFit(sizer)
