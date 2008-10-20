@@ -25,12 +25,13 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/LearningManagerDlg.py,v $
-# $Revision: 1.4 $
-# $Date: 2008/10/04 21:29:51 $
-# $Author: marcin $
+# $Revision: 1.5 $
+# $Date: 2008/10/20 02:43:05 $
+# $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
 import wx
+import os, os.path
 
 def create(parent):
     return LearningManagerDlg(parent)
@@ -60,14 +61,16 @@ class LearningManagerDlg(wx.Dialog):
               label=u'Selected chapters', name='staticText2', parent=self,
               pos=wx.Point(336, 16), size=wx.Size(86, 13), style=0)
 
-        self.AddButton = wx.BitmapButton(bitmap=wx.Bitmap(u'icons/right_arrow.png',
+        iconfile = os.path.join(self.runtimepath, u'icons/right_arrow.png')
+        self.AddButton = wx.BitmapButton(bitmap=wx.Bitmap(iconfile,
               wx.BITMAP_TYPE_PNG), id=wxID_LEARNINGMANAGERDLGADDBUTTON,
               name=u'AddButton', parent=self, pos=wx.Point(272, 144),
               size=wx.Size(34, 34), style=wx.BU_AUTODRAW)
         self.AddButton.Bind(wx.EVT_BUTTON, self.OnAddButtonButton,
               id=wxID_LEARNINGMANAGERDLGADDBUTTON)
 
-        self.RemoveButton = wx.BitmapButton(bitmap=wx.Bitmap(u'icons/left_arrow.png',
+        iconfile = os.path.join(self.runtimepath, u'icons/left_arrow.png')
+        self.RemoveButton = wx.BitmapButton(bitmap=wx.Bitmap(iconfile,
               wx.BITMAP_TYPE_PNG), id=wxID_LEARNINGMANAGERDLGREMOVEBUTTON,
               name=u'RemoveButton', parent=self, pos=wx.Point(272, 192),
               size=wx.Size(34, 34), style=wx.BU_AUTODRAW)
@@ -90,10 +93,13 @@ class LearningManagerDlg(wx.Dialog):
               name=u'TestCardsCount', parent=self, pos=wx.Point(424, 396),
               size=wx.Size(48, 21), style=wx.TE_READONLY, value=u'')
 
-    def __init__(self, parent, CardSet):
+    def __init__(self, parent, CardSet, help, runtimepath):
+        self.help           = help
+        self.runtimepath    = runtimepath
+        self.CardSet        = CardSet
+
         self._init_ctrls(parent)
 
-        self.CardSet = CardSet
 
         # Add columns to the chapters list controls
         ListWidth = self.AvailableChaptersListCtrl.GetSize()[0]
