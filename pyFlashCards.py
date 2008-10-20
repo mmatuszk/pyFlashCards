@@ -25,13 +25,13 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.13 $
-# $Date: 2008/10/18 15:55:54 $
+# $Revision: 1.14 $
+# $Date: 2008/10/20 02:44:58 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
 import wx
-import os, user
+import os, os.path, user
 import types
 import ConfigParser
 
@@ -142,11 +142,14 @@ class FlashCardFrame(wx.Frame):
     def __init__(self, parent, id, help):
         wx.Frame.__init__(self, parent, id, "Flash Cards", size=(800,600))
 
+        self.runtimepath = os.getcwd()
+
         self.help = help
 
         self.LoadConfig()
 
-        icon = wx.Icon('icons/pyFlashCards2-32x32.ico', wx.BITMAP_TYPE_ICO)
+        iconfile = os.path.join(self.runtimepath, 'icons/pyFlashCards2-32x32.ico')
+        icon = wx.Icon(iconfile, wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
 
         # Initialize data
@@ -753,7 +756,7 @@ class FlashCardFrame(wx.Frame):
             dlg.ShowModal()
             return
 
-        dlg = CardManagerDlg(self, self.CardSet, self.Config, self.help)
+        dlg = CardManagerDlg(self, self.CardSet, self.Config, self.help, self.runtimepath)
         dlg.ShowModal()
         self.CardSet, self.Config = dlg.GetData()
         dlg.Destroy()
@@ -787,7 +790,7 @@ class FlashCardFrame(wx.Frame):
             dlg.ShowModal()
             return
 
-        dlg = CardManagerDlg(self, self.CardSet, self.Config, self.help)
+        dlg = CardManagerDlg(self, self.CardSet, self.Config, self.help, self.runtimepath)
         dlg.SelectCard(self.CardSet.GetTestCard())
         dlg.ShowModal()
         self.CardSet, self.Config = dlg.GetData()
@@ -811,7 +814,7 @@ class FlashCardFrame(wx.Frame):
             self.DispDataWin.Update()
 
     def OnOpenLearningManager(self, event):
-        dlg = LearningManagerDlg(self, self.CardSet)
+        dlg = LearningManagerDlg(self, self.CardSet, self.help, self.runtimepath)
         dlg.ShowModal()
         self.CardSet = dlg.GetCardSet()
         dlg.Destroy()
@@ -894,7 +897,7 @@ class FlashCardFrame(wx.Frame):
     # have no use in publicly released software.  They all start with Util
     #-----------------------------------------------------------------------------------
     def UtilOpenTestFile(self):
-        self.filename = 'test/file1.ofc'
+        self.filename = os.path.join(self.runtimepath, 'test/file1.ofc')
         self.CardSet = FlashCard.FlashCardSet()
         self.CardSet.Load(self.filename)
         self.TestPanel.SetCardSet(self.CardSet)
@@ -1247,7 +1250,6 @@ class TestPanel(wx.Panel):
         self.NotKnow()
 
     def NotAgain(self):
-        print 'Not again'
         self.CardSet.PromoteTestCardToLastBox()
         self.TestCard = self.CardSet.NextTestCard()
 
@@ -1300,7 +1302,7 @@ class TestPanel(wx.Panel):
 
     def OnChar(self, event):
         keycode = event.GetKeyCode()
-        print 'TestPanel: OnChar %d' % keycode
+        #print 'TestPanel: OnChar %d' % keycode
 
         if self.State is ID_TEST_PANEL_STATE_SHOW_NONE:
             # Nothing to do
@@ -1321,14 +1323,14 @@ class TestPanel(wx.Panel):
         event.Skip()
 
     def OnSetFocus(self, event):
-        print 'TestPanel: Got focus'
+        #print 'TestPanel: Got focus'
         event.Skip()
 
     def OnKillFocus(self, event):
-        print 'TestPanel: Lost focus'
-        win  = event.GetWindow()
-        if win:
-            print win.GetName()
+        #print 'TestPanel: Lost focus'
+        #win  = event.GetWindow()
+        #if win:
+        #    print win.GetName()
         event.Skip()
 
     def OnLeftDown(self, event):
