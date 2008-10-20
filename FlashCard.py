@@ -24,14 +24,15 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.15 $
-# $Date: 2008/10/09 22:33:05 $
-# $Author: marcin $
+# $Revision: 1.16 $
+# $Date: 2008/10/20 02:20:55 $
+# $Author: marcin201 $
 #-------------------------------------------------------------------------------
-import fileinput, codecs, os, copy, sys
+import fileinput, codecs, os, copy, sys, shutil, tempfile
 import XMLDoc
 import htmlDoc
 import random
+import pathutils
 
 debug_save = False
 
@@ -134,10 +135,10 @@ class FlashCard:
         self.BackImage = image
 
     def GetFrontImage(self):
-        return self.FrontImage
+        return pathutils.nativepath(self.FrontImage)
 
     def GetBackImage(self):
-        return self.BackImage
+        return pathutils.nativepath(self.BackImage)
 
     def GetChapter(self):
         return self.Chapter
@@ -278,7 +279,6 @@ class FlashCardBox:
         self.MaxItems = max
 
     def GetCapacity(self):
-        print 'GetCapacity ', self.MaxItems
         return self.MaxItems
 
     def RemoveCard(self, index):
@@ -375,7 +375,6 @@ class FlashCardPool:
         return cards
 
     def RemoveCard(self, index):
-        print "Removing card from pool"
         for chapter in self.ChapterList:
             if len(self.CardList[chapter]) <= index:
                 index -= len(self.CardList[chapter])
@@ -395,7 +394,6 @@ class FlashCardPool:
 
     def RemoveChapter(self, chapter):
         if chapter not in self.ChapterList:
-            print('FlashCardPool.RemoveChapter: Chapter "%s" does not exist' % chapter)
             return 
         if len(self.CardList[chapter]) != 0:
             raise FlashCardError('Chapter "%s" has cards in the pool' % chapter)
@@ -546,7 +544,6 @@ class TestSet:
             self.TestCardBox = i
         else:
             for b,i in zip(self.box, range(len(self.box))):
-                print "box ", i
                 if b.GetCardCount() > 0:
                     self.TestCard = b.PopCard()
                     if i == 0:
@@ -621,12 +618,19 @@ class TestSet:
 
 class FlashCardSet:
     def __init__(self):
-        self.tmpdir = os.tempnam()
-        self.datafile = 'data.xml'
-        self.datafile_abs = os.path.join(self.tmpdir, 'data.xml')
-        self.picdir = 'Pictures'
-        self.picdir_abs = os.path.join(self.tmpdir, 'Pictures')
-        self.MakeTmpDir()
+        self.tmpdir = tempfile.mkdtemp()
+        # debuggin temp dir
+        #self.tmpdir = '/var/tmp/tmp-xyz'
+        #os.mkdir(self.tmpdir)
+
+        os.chdir(self.tmpdir)
+
+        self.filedir = os.path.join('tmp1')
+        self.datafile = os.path.join(self.filedir, 'data.xml')
+        self.picdir = os.path.join(self.filedir, 'Pictures')
+
+        self.MakeDirs()
+
         # Create other variables using the ClearAllData function.
         self.ClearAllData()
 
@@ -640,10 +644,6 @@ class FlashCardSet:
         self.ExportMap[ExportTypeList[0]] = self.ExportXML
         self.ExportMap[ExportTypeList[1]] = self.ExportHTML
         self.ExportMap[ExportTypeList[1]] = self.ExportHTML2
-
-    def Close(self):
-        print "Close"
-        self.RemoveTmpDir()
 
     def Close(self):
         self.RemoveTmpDir()
@@ -669,12 +669,11 @@ class FlashCardSet:
         # 10 - only box 10
         self.StudyBox = 0
 
-    def MakeTmpDir(self):
-        os.mkdir(self.tmpdir)
-        os.mkdir(self.picdir_abs)
+    def MakeDirs(self):
+        os.mkdir(self.filedir)
+        os.mkdir(self.picdir)
 
     def RemoveTmpDir(self):
-        print "Removing temporary directory"
         # Check if temp directory exisits
         if os.path.exists(self.tmpdir):
             for root, dirs, files in os.walk(self.tmpdir, topdown=False):
@@ -684,6 +683,9 @@ class FlashCardSet:
                     os.rmdir(os.path.join(root, name))
 
             os.rmdir(self.tmpdir)
+
+    def CleanFiles(self):
+        shutil.rmtree(self.filedir, True)
 
     def AddChapter(self, chapter, available = True):
         self.saved = False
@@ -779,6 +781,40 @@ class FlashCardSet:
         self.saved = False
         for c in cards:
             self.AddCard(chapter, c)
+
+    def InsertNewCardAbove(self, chapter, index):
+        self.saved = False
+        card = self.Cards[chapter][index]
+
+        new_card = FlashCard("", "")
+        new_card.SetChapter(chapter)
+        self.Cards[chapter].insert(index, new_card)
+
+        if card.GetChapter() in self.SelectedChapterList:
+            self.TestSet.AddCard(new_card)
+
+    def InsertNewCardBelow(self,chapter, index):
+        self.saved = False
+        card = self.Cards[chapter][index]
+
+        new_card = FlashCard("", "")
+        new_card.SetChapter(chapter)
+        self.Cards[chapter].insert(index+1, new_card)
+
+        if card.GetChapter() in self.SelectedChapterList:
+            self.TestSet.AddCard(new_card)
+
+    def MoveCardsUp(self, chapter, first, last):
+        self.saved = False
+
+        card = self.Cards[chapter].pop(first-1)
+        self.Cards[chapter].insert(last, card)
+
+    def MoveCardsDown(self, chapter, first, last):
+        self.saved = False
+
+        card = self.Cards[chapter].pop(last+1)
+        self.Cards[chapter].insert(first, card)
 
     def LearnChapter(self, chapter):
         self.saved = False
@@ -1003,13 +1039,12 @@ class FlashCardSet:
         return self.saved
 
     def Save(self, filename):
-        self.SaveData(self.datafile_abs)
-
+        self.SaveData(self.datafile) 
         if os.path.exists(filename):
             os.remove(filename)
 
         # Make the zip command
-        cmd = 'tar -cjf %s -C %s %s %s' % (filename, self.tmpdir, self.picdir, self.datafile)
+        cmd = 'tar -cjf %s %s' % (filename, self.filedir)
         print cmd
         os.system(cmd)
 
@@ -1017,14 +1052,16 @@ class FlashCardSet:
 
     def Load(self, filename):    
         print "Load: ", filename
-        # First remove temp directory, then remake it
-        self.RemoveTmpDir()
-        self.MakeTmpDir()
-        cmd = 'tar -xjf %s -C %s' % (filename, self.tmpdir)
+        # First clean old files
+        self.CleanFiles()
+        # Recreate all directories
+        self.MakeDirs()
+
+        cmd = 'tar -xjf %s' % filename
         print cmd
         os.system(cmd)
 
-        self.LoadData(self.datafile_abs)
+        self.LoadData(self.datafile)
 
         self.saved = True
 
@@ -1234,7 +1271,6 @@ class FlashCardSet:
             for FontNode in root[0].getAll('front_font'):
                 for FaceNode in FontNode.getAll('face'):
                     self.FrontFontFace = FaceNode.getText()
-                    print self.FrontFontFace
                 for SizeNode in FontNode.getAll('size'):
                     self.FrontFontSize = int(SizeNode.getText())
 
@@ -1296,11 +1332,7 @@ class FlashCardSet:
                     BackText = ''
 
             line = f.readline()
-        print len(FrontText)
-        print len(BackText)
         if len(FrontText) != 0 and len(BackText) != 0:
-            print len(FrontText)
-            print len(BackText)
             question = True
             self.AddCard(chapter, FlashCard(FrontText, BackText))
             count += 1
