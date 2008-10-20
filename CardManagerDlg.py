@@ -25,9 +25,9 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/CardManagerDlg.py,v $
-# $Revision: 1.10 $
-# $Date: 2008/10/11 17:44:15 $
-# $Author: marcin $
+# $Revision: 1.11 $
+# $Date: 2008/10/20 02:18:21 $
+# $Author: marcin201 $
 #-------------------------------------------------------------------------------
 import wx
 import wx.lib.imagebrowser as ib
@@ -230,17 +230,21 @@ class CardManagerDlg(wx.Dialog):
         self.CardUpBtn = wx.Button(id=wxID_CARDMANAGERDLGCARDUPBTN, label=u'Up',
               name=u'CardUpBtn', parent=self, 
               style=0)
+        self.CardUpBtn.Bind(wx.EVT_BUTTON, self.OnCardsUp,
+              id=wxID_CARDMANAGERDLGCARDUPBTN)
 
         self.CardDownBtn = wx.Button(id=wxID_CARDMANAGERDLGCARDDOWNBTN,
               label=u'Down', name=u'CardDownBtn', parent=self,
               style=0)
+        self.CardDownBtn.Bind(wx.EVT_BUTTON, self.OnCardsDown,
+              id=wxID_CARDMANAGERDLGCARDDOWNBTN)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         mv_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        mv_sizer.Add(self.CardUpBtn, 0, wx.ALIGN_CENTER)
-        mv_sizer.Add(self.CardDownBtn, 0, wx.ALIGN_CENTER)
+        mv_sizer.Add(self.CardUpBtn, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+        mv_sizer.Add(self.CardDownBtn, 0, wx.ALIGN_CENTER | wx.ALL, 5)
 
         sizer.Add(self.CardListCtrl, 0, wx.EXPAND)
         sizer.Add(mv_sizer, 0, wx.ALIGN_CENTER)
@@ -293,8 +297,9 @@ class CardManagerDlg(wx.Dialog):
 
         self.SetSizer(sizer)
 
-    def __init__(self, parent, CardSet, Config, help, size=(1024, 700)):
+    def __init__(self, parent, CardSet, Config, help, runtimepath, size=(1024, 700)):
         self.help = help
+        self.runtimepath = runtimepath
         self.CardSet = CardSet
         self.Config = Config
         if Config:
@@ -324,7 +329,7 @@ class CardManagerDlg(wx.Dialog):
         self.CardListCtrl.InsertColumn(0, "Card Front", width = width)
         self.CardListCtrl.InsertColumn(1, "Card Back", width = width)
         
-        self.AddCards2List(self.CardSet.GetChapterCards(chapters[0]))
+        self.AddCards2ListUI(self.CardSet.GetChapterCards(chapters[0]))
 
 
         self.CardCount.SetValue(`self.CardSet.GetChapterCardCount(chapters[0])`)
@@ -349,7 +354,7 @@ class CardManagerDlg(wx.Dialog):
         # Select chapter 
         self.ChaptersChoice.SetStringSelection(chapter)
         self.CardListCtrl.DeleteAllItems()
-        self.AddCards2List(self.CardSet.GetChapterCards(chapter))
+        self.AddCards2ListUI(self.CardSet.GetChapterCards(chapter))
 
         # Select card for edit
         index = self.CardSet.GetCardIndex(card)
@@ -379,7 +384,8 @@ class CardManagerDlg(wx.Dialog):
         self.FrontEntry.SetFont(f)
         self.BackEntry.SetFont(f)
 
-        self.NoImageBitmap = wx.Image('icons/noimage.jpg', 
+        iconfile = os.path.join(self.runtimepath, 'icons/noimage.jpg')
+        self.NoImageBitmap = wx.Image(iconfile, 
                 wx.BITMAP_TYPE_JPEG).ConvertToBitmap()
         self.FrontImageButton.SetBitmapLabel(self.NoImageBitmap)
         self.BackImageButton.SetBitmapLabel(self.NoImageBitmap)
@@ -422,14 +428,14 @@ class CardManagerDlg(wx.Dialog):
             self.BackImageButton.SetBitmapLabel(self.NoImageBitmap)
         
     #---------------------------------------------------------------------------
-    # Function: AddCards2List
+    # Function: AddCards2ListUI
     #
     # History:
     #   07/03/2005 : created
     # Action:
     #   Function appends a list of cards to the CardListCtrl.
     #---------------------------------------------------------------------------
-    def AddCards2List(self, list):
+    def AddCards2ListUI(self, list):
         for card in list:
             front, back = card.GetBothSides()
             front = front.split('\n')[0]
@@ -439,6 +445,17 @@ class CardManagerDlg(wx.Dialog):
             index = self.CardListCtrl.GetItemCount()
             self.CardListCtrl.InsertStringItem(index, front)            
             self.CardListCtrl.SetStringItem(index, 1, back)
+
+    
+    # Insert a card to list UI at the index position
+    def InsertCard2ListUI(self, index, card):
+        front, back = card.GetBothSides()
+        front = front.split('\n')[0]
+        back = back.split('\n')[0]
+        # Insert cards at the end of the list by getting the index from the
+        # number of items in the list
+        self.CardListCtrl.InsertStringItem(index, front)            
+        self.CardListCtrl.SetStringItem(index, 1, back)
 
     def MakeCardImage(self, src):
         dest = self.CardSet.GetNextImageName()
@@ -465,7 +482,7 @@ class CardManagerDlg(wx.Dialog):
             self.CardSet.AddCard(chapter, card)
             
             # Show the new card in the card list
-            self.AddCards2List([card])
+            self.AddCards2ListUI([card])
         else:
             # An existing card is changed
             # Get the card chapter
@@ -594,6 +611,105 @@ class CardManagerDlg(wx.Dialog):
     def GetData(self):
         return self.CardSet, self.Config
 
+    def InsertNewCardAbove(self):
+        # get info about selected card
+        chapter = self.ChaptersChoice.GetStringSelection()
+        index = self.CardListCtrl.GetFirstSelected()
+        if index < 0:
+            return
+
+        # deselect the card
+        i = index
+        while i != -1:
+            self.CardListCtrl.SetItemState(i, 0, wx.LIST_STATE_SELECTED)
+            i = self.CardListCtrl.GetNextSelected(i)
+
+        # Insert a new card into the card set
+        self.CardSet.InsertNewCardAbove(chapter, index)
+
+        # Update the state of the card list control
+        self.CardListCtrl.InsertStringItem(index, "")            
+        self.CardListCtrl.SetStringItem(index, 1, "")
+        self.CardListCtrl.SetItemState(index, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+
+    def InsertNewCardBelow(self):
+        # get info about selected card
+        chapter = self.ChaptersChoice.GetStringSelection()
+
+        index = self.CardListCtrl.GetFirstSelected()
+        if index < 0:
+            return
+
+        # find last selected card and deselect all cards at the same time
+        # when done, index will point to last selected card
+        i = index
+        while i != -1:
+            self.CardListCtrl.SetItemState(index, 0, wx.LIST_STATE_SELECTED)
+            i = self.CardListCtrl.GetNextSelected(i)
+            if i > 0:
+                index = i
+
+        # Insert a new card into the card set
+        self.CardSet.InsertNewCardBelow(chapter, index)
+
+        # Update the state of the card list control
+        self.CardListCtrl.InsertStringItem(index+1, "")            
+        self.CardListCtrl.SetStringItem(index+1, 1, "")
+        self.CardListCtrl.SetItemState(index+1, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+
+    def CardsUp(self):
+        # get info about selected card
+        chapter = self.ChaptersChoice.GetStringSelection()
+        first = self.CardListCtrl.GetFirstSelected()
+        # if no cards are selected or we are already at the top of the list, exit 
+        if first < 1:
+            return
+
+        card = self.CardSet.GetCard(chapter, first-1)
+        # find last selected cards
+        i = first
+        last = first
+        while i != -1:
+            i = self.CardListCtrl.GetNextSelected(i)
+            if i > 0:
+                last = i
+
+        # move cards around in the card set
+        self.CardSet.MoveCardsUp(chapter, first, last)
+
+        # update the state of the card list control
+        self.CardListCtrl.DeleteItem(first-1)
+        self.InsertCard2ListUI(last, card)
+
+    def CardsDown(self):
+        # get info about selected card
+        chapter = self.ChaptersChoice.GetStringSelection()
+        first = self.CardListCtrl.GetFirstSelected()
+        # if no cards are selected, exit 
+        if first < 0:
+            return
+
+        # find last selected cards
+        i = first
+        last = first
+        while i != -1:
+            i = self.CardListCtrl.GetNextSelected(i)
+            if i > 0:
+                last = i
+
+        # if we are at the end of the list, exit
+        if last+1 == self.CardListCtrl.GetItemCount():
+            return
+
+        card = self.CardSet.GetCard(chapter, last+1)
+
+        # move cards around in the card set
+        self.CardSet.MoveCardsDown(chapter, first, last)
+
+        # update the state of the card list control
+        self.CardListCtrl.DeleteItem(last+1)
+        self.InsertCard2ListUI(first, card)
+
     def DeleteSelectedCards(self):
         chapter = self.ChaptersChoice.GetStringSelection()
         index = self.CardListCtrl.GetFirstSelected()
@@ -641,7 +757,7 @@ class CardManagerDlg(wx.Dialog):
     def OnChaptersChoiceChoice(self, event):
         chapter = event.GetString()
         self.CardListCtrl.DeleteAllItems()
-        self.AddCards2List(self.CardSet.GetChapterCards(chapter))
+        self.AddCards2ListUI(self.CardSet.GetChapterCards(chapter))
         self.ResetCardUI()
         self.UpdateCardCountUI()
         
@@ -744,10 +860,14 @@ class CardManagerDlg(wx.Dialog):
     def OnRightClick(self, event):
         # only do this part the first time so the events are only bound once
         if not hasattr(self, "popupIDDelete"):
+            self.popupIDInsertAbove = wx.NewId()
+            self.popupIDInsertBelow = wx.NewId()
             self.popupIDDelete = wx.NewId()
             self.popupIDMove = wx.NewId()
             self.popupIDChapters = [wx.NewId() for n in range(MaxPopupChapters)]
 
+            self.Bind(wx.EVT_MENU, self.OnPopupInsertAbove, id=self.popupIDInsertAbove)
+            self.Bind(wx.EVT_MENU, self.OnPopupInsertBelow, id=self.popupIDInsertBelow)
             self.Bind(wx.EVT_MENU, self.OnPopupDelete, id=self.popupIDDelete)
             self.Bind(wx.EVT_MENU, self.OnPopupMove, id=self.popupIDMove)
             for id in self.popupIDChapters:
@@ -756,6 +876,8 @@ class CardManagerDlg(wx.Dialog):
         # make a menu
         menu = wx.Menu()
         # add some items
+        menu.Append(self.popupIDInsertAbove, "Insert Above")
+        menu.Append(self.popupIDInsertBelow, "Insert Below")
         menu.Append(self.popupIDDelete, "Delete")
 
         sm = wx.Menu()
@@ -776,6 +898,14 @@ class CardManagerDlg(wx.Dialog):
         self.PopupMenu(menu)
         menu.Destroy()
 
+    def OnPopupInsertAbove(self, event):
+        self.InsertNewCardAbove()
+        self.ResetCardUI()
+
+    def OnPopupInsertBelow(self, event):
+        self.InsertNewCardBelow()
+        self.ResetCardUI()
+
     def OnPopupDelete(self, event):
         self.DeleteSelectedCards()
         self.ResetCardUI()
@@ -786,6 +916,12 @@ class CardManagerDlg(wx.Dialog):
     def OnPopupMoveChapter(self, event):
         chapter = self.PopupIDChapterMap[event.GetId()]
         self.MoveSelectedCards(chapter)
+
+    def OnCardsUp(self, event):
+        self.CardsUp()
+
+    def OnCardsDown(self, event):
+        self.CardsDown()
 
     def OnCloseWindow(self, event):
         if self.IsCardModified():
