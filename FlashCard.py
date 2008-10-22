@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.16 $
-# $Date: 2008/10/20 02:20:55 $
+# $Revision: 1.17 $
+# $Date: 2008/10/22 06:27:27 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 import fileinput, codecs, os, copy, sys, shutil, tempfile
@@ -213,6 +213,8 @@ class FlashCard:
 
         return str
 
+    # Function searches the front of the card for occurance of str and returns index of the 
+    # start of the string
     def FrontTextFind(self, str, case=False):
         if case:
             FrontText = self.FrontText
@@ -222,6 +224,9 @@ class FlashCard:
 
         return FrontText.find(str)
 
+
+    # Function searches the back of the card for occurance of str and returns index of the 
+    # start of the string
     def BackTextFind(self, str, case=False):
         if case:
             BackText = self.BackText
@@ -855,6 +860,146 @@ class FlashCardSet:
 
         self.AddCard(NewChapter, card)
 
+    # Find first occurence of str among all cards in a chapter
+    # Return index of the card containing the string, or -1 if string not found
+    # direction >= 1, search forward
+    # direction < 0 search backwards
+    def FindFirstStr(self, chapter, str, case=False):
+        if self.GetChapterCardCount(chapter) < 1:
+            return -1
+
+        index = 0
+        direction = 1
+
+        found = False
+        searchIndex = index
+
+        card = self.GetCard(chapter, searchIndex)
+        if card.FrontTextFind(str, case) >= 0 or card.BackTextFind(str, case) >= 0:
+            found = True
+
+        while not found and searchIndex < self.GetChapterCardCount(chapter):
+            card = self.GetCard(chapter, searchIndex)
+            if card.FrontTextFind(str, case) >= 0 or card.BackTextFind(str, case) >= 0:
+                found = True
+            else:
+                searchIndex += direction
+
+        if found:
+            return searchIndex
+
+        return -1
+
+    # Find last occurence of str among all cards in a chapter
+    # Return index of the card containing the string, or -1 if string not found
+    # direction >= 1, search forward
+    # direction < 0 search backwards
+    def FindLastStr(self, chapter, str, case=False):
+        if self.GetChapterCardCount(chapter) < 1:
+            return -1
+
+        index = self.GetChapterCardCount(chapter)-1
+        direction = -1
+
+        found = False
+        searchIndex = index
+
+        card = self.GetCard(chapter, searchIndex)
+        if card.FrontTextFind(str, case) >= 0 or card.BackTextFind(str, case) >= 0:
+            found = True
+
+        while not found and searchIndex >= 0:
+            card = self.GetCard(chapter, searchIndex)
+            if card.FrontTextFind(str, case) >= 0 or card.BackTextFind(str, case) >= 0:
+                found = True
+            else:
+                searchIndex += direction
+
+        if found:
+            return searchIndex
+
+        return -1
+
+    # Find a occurence of str among all cards in a chapter starting at card index, but not including that card
+    # Return index of the card containing the string, or -1 if string not found
+    # direction >= 1, search forward
+    # direction < 0 search backwards
+    def FindNextStr(self, chapter, index, str, case=False, direction=1):
+        if direction >= 0:
+            direction = 1
+        else:
+            direction = -1
+
+        if self.GetChapterCardCount(chapter) < 1:
+            return -1
+        elif index+1 == self.GetChapterCardCount(chapter) and direction == 1:
+            return -1
+        elif index == 0 and direction == -1:
+            return -1
+        elif index < 0:
+            return -1
+        elif index+1 > self.GetChapterCardCount(chapter):
+            return -1
+
+        found = False
+        searchIndex = index + direction
+
+        while not found and searchIndex <> index:
+            card = self.GetCard(chapter, searchIndex)
+            if card.FrontTextFind(str, case) >= 0 or card.BackTextFind(str, case) >= 0:
+                found = True
+            else:
+                searchIndex += direction
+                if searchIndex >= self.GetChapterCardCount(chapter):
+                    searchIndex = 0
+                elif searchIndex < 0:
+                    searchIndex = -1
+
+        if found:
+            return searchIndex
+
+        return -1
+
+    # Find a occurence of str among all cards in a chapter starting at card index, but not including that card
+    # Return index of the card containing the string, or -1 if string not found
+    # direction >= 1, search forward
+    # direction < 0 search backwards
+    def FindNextStr(self, chapter, index, str, case=False, direction=1):
+        if direction >= 0:
+            direction = 1
+        else:
+            direction = -1
+
+        if self.GetChapterCardCount(chapter) < 1:
+            return -1
+        elif index+1 == self.GetChapterCardCount(chapter) and direction == 1:
+            return -1
+        elif index == 0 and direction == -1:
+            return -1
+        elif index < 0:
+            return -1
+        elif index+1 > self.GetChapterCardCount(chapter):
+            return -1
+
+        found = False
+        searchIndex = index + direction
+
+        while not found and searchIndex <> index:
+            card = self.GetCard(chapter, searchIndex)
+            if card.FrontTextFind(str, case) >= 0 or card.BackTextFind(str, case) >= 0:
+                found = True
+            else:
+                searchIndex += direction
+                if searchIndex >= self.GetChapterCardCount(chapter):
+                    searchIndex = 0
+                elif searchIndex < 0:
+                    searchIndex = -1
+
+        if found:
+            return searchIndex
+
+        return -1
+
     def GetCard(self, chapter, index):
         return self.Cards[chapter][index]
 
@@ -863,6 +1008,9 @@ class FlashCardSet:
 
     def GetChapters(self):
         return self.ChapterList
+
+    def GetChapterName(self, index):
+        return self.ChapterList[index]
 
     def GetChapterIndex(self, chapter):
         for c, i in zip(self.ChapterList, range(len(self.ChapterList))):
