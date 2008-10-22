@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/CardManagerDlg.py,v $
-# $Revision: 1.11 $
-# $Date: 2008/10/20 02:18:21 $
+# $Revision: 1.12 $
+# $Date: 2008/10/22 06:28:41 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 import wx
@@ -47,7 +47,7 @@ def create(parent):
  wxID_CARDMANAGERDLGCARDUPBTN, wxID_CARDMANAGERDLGCHAPTERSCHOICE, 
  wxID_CARDMANAGERDLGCOMMITCARDBTN, wxID_CARDMANAGERDLGCANCELCARDBTN, 
  wxID_CARDMANAGERDLGFINDNEXTBTN, wxID_CARDMANAGERDLGFINDPREVIOUSBTN, 
- wxID_CARDMANAGERDLGFINDTEXTCTRL, wxID_CARDMANAGERDLGFRONTENTRY, 
+ wxID_CARDMANAGERDLGSEARCHCTRL, wxID_CARDMANAGERDLGFRONTENTRY, 
  wxID_CARDMANAGERDLGFRONTIMAGEBUTTON, 
  wxID_CARDMANAGERDLGREMOVEBACKIMAGEBUTTON, 
  wxID_CARDMANAGERDLGREMOVEFRONTIMAGEBUTTON, wxID_CARDMANAGERDLGSTATICTEXT1, 
@@ -56,6 +56,7 @@ def create(parent):
 ] = [wx.NewId() for _init_ctrls in range(22)]
 
 hspacer = (10,1)
+vspacer = (1, 10)
 
 class CardManagerDlg(wx.Dialog):
     def MakeChaptersUI(self, parent):
@@ -168,16 +169,17 @@ class CardManagerDlg(wx.Dialog):
         return sizer
 
     def MakeFindUI(self, parent):
-        findlabel = wx.StaticText(parent, -1, 'Find')
+        self.SearchCtrl = wx.SearchCtrl(parent, wxID_CARDMANAGERDLGSEARCHCTRL, style = wx.TE_PROCESS_ENTER)
+        size = self.SearchCtrl.GetSize()
+        size[0] *= 2
+        self.SearchCtrl.SetInitialSize(size)
 
-        self.FindTextCtrl = wx.TextCtrl(parent, wxID_CARDMANAGERDLGFINDTEXTCTRL,
-            style=wx.TE_PROCESS_ENTER, value=u'')
-        self.FindTextColourSearch = self.FindTextCtrl.GetBackgroundColour()
+        self.FindTextColourSearch = self.SearchCtrl.GetBackgroundColour()
         self.FindTextColourFound = wx.Colour(200, 255, 0)
         self.FindTextColourNotFound = wx.Colour(255, 0, 65)
 
-        self.FindTextCtrl.Bind(wx.EVT_TEXT_ENTER, self.OnFindNext)
-        self.FindTextCtrl.Bind(wx.EVT_TEXT, self.OnFindText)
+        self.SearchCtrl.Bind(wx.EVT_TEXT_ENTER, self.OnFindNext)
+        self.SearchCtrl.Bind(wx.EVT_TEXT, self.OnFindNext)
 
         self.FindNextBtn = wx.Button(id=wxID_CARDMANAGERDLGFINDNEXTBTN,
               label=u'Find Next', name=u'FindNextBtn', parent=self,
@@ -189,16 +191,20 @@ class CardManagerDlg(wx.Dialog):
               style=0)
         self.FindPrevBtn.Bind(wx.EVT_BUTTON, self.OnFindPrev)
 
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.FindMessage = wx.StaticText(parent, -1, ' ')
+        font = self.FindMessage.GetFont()
+        font.SetWeight(wx.BOLD)
+        self.FindMessage.SetFont(font)
+        self.FindMessage.SetForegroundColour(wx.Color(94, 122, 167))
 
-        sizer.Add(findlabel, 0, wx.ALIGN_CENTER)
-        sizer.AddSpacer(hspacer)
-        sizer.Add(self.FindTextCtrl, 0, wx.ALIGN_CENTER)
-        sizer.AddSpacer(hspacer)
-        sizer.Add(self.FindNextBtn, 0, wx.ALIGN_CENTER)
-        sizer.Add(self.FindPrevBtn, 0, wx.ALIGN_CENTER)
+        h_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        return sizer
+        h_sizer.Add(self.SearchCtrl, 0, wx.ALIGN_TOP)
+        h_sizer.Add(self.FindNextBtn, 0, wx.ALIGN_TOP | wx.LEFT, 10)
+        h_sizer.Add(self.FindPrevBtn, 0, wx.ALIGN_TOP | wx.LEFT, 10) 
+        h_sizer.Add(self.FindMessage, 0, wx.ALIGN_CENTER | wx.LEFT, 20)
+
+        return h_sizer
 
     def MakeCardCountUI(self, parent):
         countlabel = wx.StaticText(label=u'Cards', parent=self,
@@ -282,7 +288,7 @@ class CardManagerDlg(wx.Dialog):
         sizer_col.Add(ch_sizer, 0, wx.EXPAND)
         sizer_col.AddSpacer((1,15))
         sizer_col.Add(entry_sizer, 1, wx.EXPAND)
-        sizer_col.Add(find_sizer)
+        sizer_col.Add(find_sizer, 0, wx.ALIGN_LEFT)
 
         sizer.Add(sizer_col, 1, wx.EXPAND | wx.ALL, 10)
 
@@ -306,6 +312,10 @@ class CardManagerDlg(wx.Dialog):
             w = self.Config.getint('card_browser', 'width')
             h = self.Config.getint('card_browser', 'height')
             size = (w, h)
+
+        # Initialize search functionality
+        self.lastSearchStr = ''
+        self.searchCardIndex = -1
 
         # Call the boa generate function to initialize controls
         self._init_ctrls(parent, size)
@@ -730,13 +740,102 @@ class CardManagerDlg(wx.Dialog):
 
         self.UpdateCardCountUI()
 
+    def FindNext(self, searchStr, case=False):
+        if searchStr == '':
+            return
+
+        self.FindMessage.SetLabel("")
+        # Check if we are starting a new search or looking for next occurence
+        if self.lastSearchStr != searchStr:
+            # new search
+            self.lastSearchStr = searchStr
+            searchChapter = self.ChaptersChoice.GetStringSelection()
+            i = self.CardSet.FindFirstStr(searchChapter, searchStr, case)
+            if i < 0:
+                self.FindMessage.SetLabel("Phrase not found")
+        else:
+            # looking for next item
+            if self.searchCardIndex < 0:
+                self.FindMessage.SetLabel("Phrase not found")
+                i = -1
+            else:
+                self.lastSearchStr = searchStr
+                searchChapter = self.ChaptersChoice.GetStringSelection()
+                i = self.CardSet.FindNextStr(searchChapter, self.searchCardIndex, searchStr, case)
+                if i < 0:
+                    self.FindMessage.SetLabel("Searching from top")
+                    i = self.CardSet.FindFirstStr(searchChapter, searchStr)
+
+        self.searchCardIndex = i
+        if i < 0:
+            return
+
+        # Update gui
+        #
+        # first deselect any cards if selected
+        n = self.CardListCtrl.GetFirstSelected()
+        if n >= 0:
+            self.CardListCtrl.SetItemState(n, 0, wx.LIST_STATE_SELECTED)
+            print "Deselecting item"
+        while n >= 0:
+            n = self.CardListCtrl.GetNextSelected(n)
+            if n >= 0:
+                self.CardListCtrl.SetItemState(n, 0, wx.LIST_STATE_SELECTED)
+
+
+        # Select the card containg the search string
+        self.CardListCtrl.SetItemState(self.searchCardIndex, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+
+        # Bring focus back to the search ctrl
+        self.SearchCtrl.SetFocus()
+
+    def FindPrev(self, searchStr, case=False):
+        if searchStr == '':
+            return
+
+        self.FindMessage.SetLabel("")
+
+        # looking for next item
+        if self.searchCardIndex < 0:
+            self.FindMessage.SetLabel("Phrase not found")
+            i = -1
+        else:
+            self.lastSearchStr = searchStr
+            searchChapter = self.ChaptersChoice.GetStringSelection()
+            i = self.CardSet.FindNextStr(searchChapter, self.searchCardIndex, searchStr, case, -1)
+            if i < 0:
+                self.FindMessage.SetLabel("Searching from bottom")
+                i = self.CardSet.FindLastStr(searchChapter, searchStr)
+
+        self.searchCardIndex = i
+        if i < 0:
+            return
+
+        # Update gui
+        #
+        # first deselect any cards if selected
+        n = self.CardListCtrl.GetFirstSelected()
+        if n >= 0:
+            self.CardListCtrl.SetItemState(n, 0, wx.LIST_STATE_SELECTED)
+        while n >= 0:
+            n = self.CardListCtrl.GetNextSelected(n)
+            if n >= 0:
+                self.CardListCtrl.SetItemState(n, 0, wx.LIST_STATE_SELECTED)
+
+
+        # Select the card containg the search string
+        self.CardListCtrl.SetItemState(self.searchCardIndex, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+
+        # Bring focus back to the search ctrl
+        self.SearchCtrl.SetFocus()
+
     def OnKeyDown(self, event):
         keycode = event.GetKeyCode()
 
         if event.ControlDown() and not event.ShiftDown() \
                 and not event.AltDown():
             if keycode == ord('F'):
-                self.FindTextCtrl.SetFocus()
+                self.SearchCtrl.SetFocus()
                 return
 
         event.Skip()
@@ -943,64 +1042,11 @@ class CardManagerDlg(wx.Dialog):
                 self.Config.set('card_browser', 'height', `h`)
             event.Skip()
 
-    def OnFindText(self, event):
-        self.FindTextCtrl.SetBackgroundColour(self.FindTextColourSearch)
-        event.Skip()
-
     def OnFindNext(self, event):
-        searchStr = self.FindTextCtrl.GetValue()
-        if searchStr == '':
-            return
-        i = self.Find(searchStr, False)
-        if i > 0:
-            card = self.cards[i]
-            self.i = i
-            self.DisplayCard(card) 
-            self.CardListCtrl.SetItemState(self.i, wx.LIST_STATE_SELECTED,
-                    wx.LIST_STATE_SELECTED)
-            self.IndexLabel.SetLabel('Card %d/%d' % (self.i+1, len(self.cards)))
-            self.FindTextCtrl.SetBackgroundColour(self.FindTextColourFound)
-        else:
-            self.FindTextCtrl.SetBackgroundColour(self.FindTextColourNotFound)
+        self.FindNext(self.SearchCtrl.GetValue())
 
     def OnFindPrev(self, event):
-        searchStr = self.FindTextCtrl.GetValue()
-        if searchStr == '':
-            return
-        i = self.Find(searchStr, False, -1)
-        if i > 0:
-            card = self.cards[i]
-            self.i = i
-            self.DisplayCard(card) 
-            self.CardListCtrl.SetItemState(self.i, wx.LIST_STATE_SELECTED,
-                    wx.LIST_STATE_SELECTED)
-            self.IndexLabel.SetLabel('Card %d/%d' % (self.i+1, len(self.cards)))
-            self.FindTextCtrl.SetBackgroundColour(self.FindTextColourFound)
-        else:
-            self.FindTextCtrl.SetBackgroundColour(self.FindTextColourNotFound)
-
-    def Find(self, str, case=False, direction=1):
-        if len(self.cards) < 1:
-            return
-
-        found = False
-        self.searchIndex = self.i + direction
-        while not found and self.searchIndex <> self.i:
-            card = self.cards[self.searchIndex]
-            if card.FrontTextFind(str, case) >= 0 or\
-                    card.BackTextFind(str, case) >= 0:
-                found = True
-            else:
-                self.searchIndex += direction
-                if self.searchIndex >= len(self.cards):
-                    self.searchIndex = 0
-                elif self.searchIndex < 0:
-                    self.searchIndex = len(self.cards)-1
-
-        if found:
-            return self.searchIndex
-
-        return -1
+        self.FindPrev(self.SearchCtrl.GetValue())
 
 def MakeButtonBitmap(filename, bsize, pad=10):
         bw, bh = bsize
