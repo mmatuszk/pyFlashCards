@@ -27,8 +27,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/AutoCorrDlg.py,v $
-# $Revision: 1.2 $
-# $Date: 2008/11/01 16:14:23 $
+# $Revision: 1.3 $
+# $Date: 2008/11/01 16:15:49 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -60,4 +60,4 @@ class AutoCorrDlg(wx.Dialog):
 
 
     def init_ctrls(self, parent):
-        self.ReplaceLabel = wx.StaticTextCtrl(self, 'Replace')
+        self.ReplaceLabel = wx.StaticText(self, -1, 'Replace')
