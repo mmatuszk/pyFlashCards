@@ -27,8 +27,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/AutoCorrDlg.py,v $
-# $Revision: 1.3 $
-# $Date: 2008/11/01 16:15:49 $
+# $Revision: 1.4 $
+# $Date: 2008/11/01 16:50:37 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -61,3 +61,23 @@ class AutoCorrDlg(wx.Dialog):
 
     def init_ctrls(self, parent):
         self.ReplaceLabel = wx.StaticText(self, -1, 'Replace')
+        self.WithLabel = wx.StaticText(self, -1, 'With')
+        self.ReplaceTextCtrl = wx.TextCtrl(self, -1)
+        self.WithTextCtrl = wx.TextCtrl(self, -1)
+        self.NewReplaceButton = wx.Button(self, -1, 'New')
+        self.FindReplaceListCtrl = wx.ListCtrl(self, -1)
+        self.DeletButton = wx.Button(self, -1, 'Delete')
+
+
+        gbs = wx.GridBagSizer(3,3)
+
+        gbs.Add(self.ReplaceLabel, (0,0), wx.DefaultSpan, wx.ALL, 10)
+        gbs.Add(self.WithLabel, (0,1), wx.DefaultSpan, wx.ALL, 10)
+        gbs.Add(self.ReplaceTextCtrl, (1, 0), wx.DefaultSpan, wx.ALL, 10)
+        gbs.Add(self.WithTextCtrl, (1, 1), wx.DefaultSpan, wx.ALL, 10)
+        gbs.Add(self.NewReplaceButton, (1, 2), wx.DefaultSpan, wx.ALL, 10)
+        gbs.Add(self.FindReplaceListCtrl, (2,0), (2,1), wx.ALL, 10)
+        gbs.Add(self.DeleteButton, (2, 2), wx.DefaultSpan, wx.CENTER)
+
+
+        self.SetSizer(gbs)
