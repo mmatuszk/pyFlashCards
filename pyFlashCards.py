@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.14 $
-# $Date: 2008/10/20 02:44:58 $
+# $Revision: 1.15 $
+# $Date: 2008/11/02 22:59:54 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -1371,7 +1371,6 @@ def GetConfigFileName():
     return os.path.join(UserDataDir, ConfigFileName)
 
 if __name__ == '__main__':
-    print os.getcwd()
     app = wx.PySimpleApp()
     wx.GetApp().SetAppName('pyFlashCards')
     CheckUserDataDir()

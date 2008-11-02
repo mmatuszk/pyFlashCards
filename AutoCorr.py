@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/AutoCorr.py,v $
-# $Revision: 1.2 $
-# $Date: 2008/11/01 15:53:24 $
+# $Revision: 1.3 $
+# $Date: 2008/11/02 22:58:13 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 import codecs
@@ -35,50 +35,105 @@ debug_save = False
 
 class AutoCorr:
     def __init__(self):
-        self.FindReplaceList = []
+        self.ReplaceWithList = []
+        self.EnableState = True
+
+    def InsertItem(self, replaceStr, withStr):
+        i = 0
+        for itemFind, itemReplace in self.ReplaceWithList:
+            if itemFind > replaceStr:
+                break
+            i += 1
+        self.ReplaceWithList.insert(i, (replaceStr, withStr))
+
+        return i
+
+    def ReplaceItem(self, index, replaceStr, withStr):
+        self.ReplaceWithList[index] = (replaceStr, withStr)
+
+    def DeleteItem(self, index):
+        self.ReplaceWithList.pop(index)
 
     def FindReplace(self, str):
-        for findStr, replaceStr in self.FindReplaceList:
-            i = str.find(findStr)
+        if self.EnableState == False:
+            return str
+
+        for replaceStr, withStr in self.ReplaceWithList:
+            i = str.find(replaceStr)
             start = 0
-            while i >= 0:
-                char = str[start+i+len(findStr)]
-                # replace the string only if following character is a a white space
-                if char.isspace():
-                    str = str.replace(findStr, replaceStr, 1)
-                    start = i+len(replaceStr)
+            while i >= 0 and start+i+len(replaceStr) < len(str):
+                char = str[start+i+len(replaceStr)]
+                # with the string only if following and previous character is a a white space
+                if char.isspace() and (i == 0 or str[i-1].isspace()):
+                    print i
+                    print str[i-1]
+                    str = str.replace(replaceStr, withStr, 1)
+                    start = i+len(withStr)
                 else:
-                    start = i+len(findStr)
-                i = str[start:].find(findStr)
+                    start = i+len(replaceStr)
+                i = str[start:].find(replaceStr)
 
         return str
 
+    def GetItem(self, index):
+        return self.ReplaceWithList[index]
+
+    def GetItems(self):
+        return self.ReplaceWithList
+
+    def Enable(self):
+        self.EnableState = True
+
+    def Disable(self):
+        self.EnableState = False
+
+    def GetSetEnable(self):
+        return self.EnableState
+
+    def FindReplaceStr(self, str):
+        i = 0
+        found = -1
+        for replaceStr, withStr in self.ReplaceWithList:
+            if str == replaceStr:
+                found = i
+                break
+            i += 1
+
+        return found
+
+
     def GenerateTestData(self):
         item = (u"alpha", u"\u03B1")
-        self.FindReplaceList.append(item)
+        self.ReplaceWithList.append(item)
         item = (u"beta", u"\u03B2")
-        self.FindReplaceList.append(item)
-        item = (u"beta-blocker", u"\u03B2-blocker")
-        self.FindReplaceList.append(item)
+        self.ReplaceWithList.append(item)
         item = (u"delta", u"\u03B4")
-        self.FindReplaceList.append(item)
-        item = (u"delta", u"\u03B4")
-        self.FindReplaceList.append(item)
+        self.ReplaceWithList.append(item)
         item = (u">=", u"\u2265")
-        self.FindReplaceList.append(item)
+        self.ReplaceWithList.append(item)
         item = (u"<=", u"\u2264")
-        self.FindReplaceList.append(item)
+        self.ReplaceWithList.append(item)
+
+        self.ReplaceWithList.sort()
 
     def Save(self, filename):
         doc = XMLDoc.XMLDocument()
 
         root = doc.add('data')
 
-        # Add chapter list
-        for f,r in self.FindReplaceList:
+        # Add enable
+        enableItem = root.add('enable')
+        if self.EnableState:
+            enableItem.addText('True')
+        else:
+            enableItem.addText('False')
+
+        # Add item list
+        for r,w in self.ReplaceWithList:
             item = root.add('item')
-            item.add('find').addText(f)
             item.add('replace').addText(r)
+            item.add('with').addText(w)
+
         # Write the document to file
         f = codecs.open(filename, 'w', 'utf_8')
         doc.writexml(f)
@@ -96,16 +151,28 @@ class AutoCorr:
         root = doc.getAll('data')
 
         if root:
+            for enableItem in root[0].getAll('enable'):
+                str = enableItem.getText()
+                if str == 'True':
+                    self.EnableState = True
+                else:
+                    self.EnableState = False
+
             # Erase all data
-            self.FindReplaceList = []
+            self.ReplaceWithList = []
 
             # Cards
             for item in root[0].getAll('item'):
-                for find in item.getAll('find'):
-                    findStr = find.getText()
-                for replace in item.getAll('replace'):
-                    replaceStr = replace.getText()
+                for replaceItem in item.getAll('replace'):
+                    replaceStr = replaceItem.getText()
+                for withItem in item.getAll('with'):
+                    withStr = withItem.getText()
 
-                    self.FindReplaceList.append((findStr, replaceStr))
+                    self.ReplaceWithList.append((replaceStr, withStr))
 
-        self.FindReplaceList.sort()
+        self.ReplaceWithList.sort()
+
+
+    def PrintList(self):
+        for f,r in self.ReplaceWithList:
+            print f, r
