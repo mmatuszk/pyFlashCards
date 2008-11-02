@@ -1,15 +1,37 @@
 import wx
 
 class TextHtmlCtrl(wx.TextCtrl):
-    def __init__(self, parent, id, value="", pos=wx.DefaultPosition,
+    def __init__(self, parent, id, autocorr, value="", pos=wx.DefaultPosition,
             size=wx.DefaultSize, style=0, validator=wx.DefaultValidator,
             name=wx.TextCtrlNameStr):
+
+        self.autocorr = autocorr
 
         wx.TextCtrl.__init__(self, parent, id, value, pos, size, style,
                              validator, name)
 
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.Bind(wx.EVT_TEXT, self.OnText)
 
+
+    def OnText(self, event):
+        text = self.GetValue()
+        if len(text) == 0:
+            return
+
+        end = self.GetInsertionPoint()-1
+        start = end-1
+        if text[end].isspace():
+            while start >= 0 and not text[start].isspace():
+                start -= 1
+
+            if start < 0 or text[start].isspace():
+                start += 1
+                print text[start:end+1]
+                newText = self.autocorr.FindReplace(text[start:end+1])
+                if newText != text[start:end+1]:
+                    self.Replace(start, end+1, newText)
+    
     def OnKeyDown(self, event):
         keycode = event.GetKeyCode()
 
