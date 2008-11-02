@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.15 $
-# $Date: 2008/11/02 22:59:54 $
+# $Revision: 1.16 $
+# $Date: 2008/11/02 23:24:06 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -44,6 +44,7 @@ from CardBrowserDlg import *
 from ChapterManagerDlg import *
 from LearningManagerDlg import *
 from BoxManagerDlg import *
+import AutoCorr
 import ViewDlg
 import AboutDlg
 import FlashCard
@@ -101,7 +102,8 @@ ID_TP_BACK_FONT_SIZE    = wx.NewId()
 
 defext = 'ofc'
 wildcard = 'Flash Card files (*.%s)|*.%s' % (defext, defext)
-ConfigFileName = 'flashcard.cfg'
+ConfigFileName      = 'flashcard.cfg'
+AutoCorrFileName    = 'autocorr.xml'
 
 ApplicationName = 'pyFlashCards'
 
@@ -147,6 +149,7 @@ class FlashCardFrame(wx.Frame):
         self.help = help
 
         self.LoadConfig()
+        self.LoadAutoCorr()
 
         iconfile = os.path.join(self.runtimepath, 'icons/pyFlashCards2-32x32.ico')
         icon = wx.Icon(iconfile, wx.BITMAP_TYPE_ICO)
@@ -270,6 +273,31 @@ class FlashCardFrame(wx.Frame):
         f = open(GetConfigFileName(), 'w')
         self.Config.write(f)
         f.close()
+
+    def LoadAutoCorr(self):
+        # create an empty AutoCorr object
+        self.autocorr = AutoCorr.AutoCorr()
+
+        # Start with user autocorr file
+        filename = GetAutoCorrFileName()
+
+        if os.path.exists(filename):
+            self.autocorr.Load(filename)
+            return
+        else:
+            print "Warning: user autocorrect file does not exist"
+
+        # If the user file does not exist, try the application file
+        filename = os.path.join(self.runtimepath, 'autocorr', AutoCorrFileName)
+        if os.path.exists(filename):
+            self.autocorr.Load(filename)
+            return
+        else:
+            print "Warning: application autocorrect file does not exist"
+
+    def WriteAutoCorr(self):
+        filename = GetAutoCorrFileName()
+        self.autocorr.Save(filename)
 
     def GenerateTitle(self):
         if not self.CardSet:
@@ -727,6 +755,7 @@ class FlashCardFrame(wx.Frame):
 
     def OnCloseWindow(self, event):
         self.WriteConfig()
+        self.WriteAutoCorr()
 
         if self.CardSet:
             if self.SaveAndCloseCardSet() == wx.ID_CANCEL:
@@ -1369,6 +1398,11 @@ def GetConfigFileName():
     sp = wx.StandardPaths.Get()
     UserDataDir = sp.GetUserDataDir()
     return os.path.join(UserDataDir, ConfigFileName)
+
+def GetAutoCorrFileName():
+    sp = wx.StandardPaths.Get()
+    UserDataDir = sp.GetUserDataDir()
+    return os.path.join(UserDataDir, AutoCorrFileName)
 
 if __name__ == '__main__':
     app = wx.PySimpleApp()
