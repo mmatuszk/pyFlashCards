@@ -27,8 +27,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/AutoCorrDlg.py,v $
-# $Revision: 1.5 $
-# $Date: 2008/11/02 22:58:45 $
+# $Revision: 1.6 $
+# $Date: 2008/11/04 03:19:42 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -141,6 +141,9 @@ class AutoCorrDlg(wx.Dialog):
 
         self.EnableCheckBox.SetValue(self.autocorr.GetSetEnable())
 
+    def GetData(self):
+        return self.autocorr
+
     def OnNewReplace(self, event):
         replaceStr =  self.ReplaceTextCtrl.GetValue()
         withStr = self.WithTextCtrl.GetValue()
@@ -203,7 +206,6 @@ class AutoCorrDlg(wx.Dialog):
 
     def ReplaceTextCtrlEvtChar(self, event):
         charCode = event.GetCharCode()
-        print "EvtChar: ", charCode
         event.Skip()
 
         if self.ReplaceWithListCtrl.GetSelectedItemCount() == 0:
