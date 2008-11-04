@@ -27,8 +27,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/AutoCorrDlg.py,v $
-# $Revision: 1.8 $
-# $Date: 2008/11/04 05:28:45 $
+# $Revision: 1.9 $
+# $Date: 2008/11/04 05:41:25 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -94,9 +94,17 @@ class AutoCorrDlg(wx.Dialog):
         self.DeleteButton.Disable()
 
         # resize of the windows
-        size = self.WithTextCtrl.GetSize()
-        size[0] *= 2.5
-        self.WithTextCtrl.SetInitialSize(size)
+        if wx.Platform == '__WXGTK__':
+            # Initiize size of TextCtrl under gtk is not very nice so resize lets resize them
+            size = self.WithTextCtrl.GetSize()
+            size[0] = 120
+            self.ReplaceTextCtrl.SetInitialSize(size)
+            size[0] = 250
+            self.WithTextCtrl.SetInitialSize(size)
+        else:
+            size = self.WithTextCtrl.GetSize()
+            size[0] *= 2.5
+            self.WithTextCtrl.SetInitialSize(size)
 
         gbs = wx.GridBagSizer(5,3)
 
