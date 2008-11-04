@@ -27,7 +27,7 @@ class TextHtmlCtrl(wx.TextCtrl):
 
             if start < 0 or text[start].isspace():
                 start += 1
-                print text[start:end+1]
+                #print text[start:end+1]
                 newText = self.autocorr.FindReplace(text[start:end+1])
                 if newText != text[start:end+1]:
                     self.Replace(start, end+1, newText)
