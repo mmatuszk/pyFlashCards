@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/CardManagerDlg.py,v $
-# $Revision: 1.13 $
-# $Date: 2008/11/04 03:21:28 $
+# $Revision: 1.14 $
+# $Date: 2008/11/04 06:30:12 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 import wx
@@ -235,7 +235,7 @@ class CardManagerDlg(wx.Dialog):
     def MakeCardListUI(self, parent):
         self.CardListCtrl = wx.ListCtrl(id=ID_CMDLG_CARDLISTCTRL,
               name=u'CardListCtrl', parent=self, 
-              size=wx.Size(312, 624), style=wx.LC_REPORT)
+              size=wx.Size(300, 100), style=wx.LC_REPORT | wx.BORDER_SUNKEN)
         self.CardListCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
               self.OnCardListCtrlListItemSelected,
               id=ID_CMDLG_CARDLISTCTRL)
@@ -263,7 +263,7 @@ class CardManagerDlg(wx.Dialog):
         mv_sizer.Add(self.CardUpBtn, 0, wx.ALIGN_CENTER | wx.ALL, 5)
         mv_sizer.Add(self.CardDownBtn, 0, wx.ALIGN_CENTER | wx.ALL, 5)
 
-        sizer.Add(self.CardListCtrl, 0, wx.EXPAND)
+        sizer.Add(self.CardListCtrl, 0, wx.EXPAND | wx.ALL, 5)
         sizer.Add(mv_sizer, 0, wx.ALIGN_CENTER)
 
         return sizer
