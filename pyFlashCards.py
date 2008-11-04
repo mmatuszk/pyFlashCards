@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.16 $
-# $Date: 2008/11/02 23:24:06 $
+# $Revision: 1.17 $
+# $Date: 2008/11/04 03:22:54 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -785,9 +785,9 @@ class FlashCardFrame(wx.Frame):
             dlg.ShowModal()
             return
 
-        dlg = CardManagerDlg(self, self.CardSet, self.Config, self.help, self.runtimepath)
+        dlg = CardManagerDlg(self, self.CardSet, self.Config, self.autocorr, self.help, self.runtimepath)
         dlg.ShowModal()
-        self.CardSet, self.Config = dlg.GetData()
+        self.CardSet, self.Config, self.autocorr = dlg.GetData()
         dlg.Destroy()
 
         self.TestPanel.Update()
@@ -819,10 +819,10 @@ class FlashCardFrame(wx.Frame):
             dlg.ShowModal()
             return
 
-        dlg = CardManagerDlg(self, self.CardSet, self.Config, self.help, self.runtimepath)
+        dlg = CardManagerDlg(self, self.CardSet, self.Config, self.autocorr, self.help, self.runtimepath)
         dlg.SelectCard(self.CardSet.GetTestCard())
         dlg.ShowModal()
-        self.CardSet, self.Config = dlg.GetData()
+        self.CardSet, self.Config, self.autocorr = dlg.GetData()
         dlg.Destroy()
 
         self.TestPanel.Update()
