@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/AutoCorr.py,v $
-# $Revision: 1.3 $
-# $Date: 2008/11/02 22:58:13 $
+# $Revision: 1.4 $
+# $Date: 2008/11/04 03:19:11 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 import codecs
@@ -65,8 +65,6 @@ class AutoCorr:
                 char = str[start+i+len(replaceStr)]
                 # with the string only if following and previous character is a a white space
                 if char.isspace() and (i == 0 or str[i-1].isspace()):
-                    print i
-                    print str[i-1]
                     str = str.replace(replaceStr, withStr, 1)
                     start = i+len(withStr)
                 else:
