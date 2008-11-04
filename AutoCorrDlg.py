@@ -27,8 +27,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/AutoCorrDlg.py,v $
-# $Revision: 1.7 $
-# $Date: 2008/11/04 05:08:55 $
+# $Revision: 1.8 $
+# $Date: 2008/11/04 05:28:45 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -84,7 +84,8 @@ class AutoCorrDlg(wx.Dialog):
         self.ReplaceWithListCtrl = wx.ListCtrl(self, -1, size=(100, 350), style=
                 wx.LC_REPORT | 
                 wx.LC_NO_HEADER |
-                wx.LC_SINGLE_SEL)
+                wx.LC_SINGLE_SEL |
+                wx.BORDER_SUNKEN)
         self.DeleteButton = wx.Button(self, ID_AUTOCORRDLG_ON_DELETE, 'Delete')
         self.EnableCheckBox = wx.CheckBox(self, -1, 'Enable Autocorrect')
 
