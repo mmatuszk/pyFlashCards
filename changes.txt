@@ -1,3 +1,9 @@
+Version 0.4.0
+- Support for multiple instances (Changed from a fixed temporary directory to a dynamic one)
+- Added functionality to insert cards above/below a slected card in the CardManager
+- Added functionality to move cards up and down in the CardManager
+- Added functionality to do autocorrect in CardManager
+
 Version 0.3.0
 - Added import XML.
 - Added export XML.
