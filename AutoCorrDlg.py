@@ -27,8 +27,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/AutoCorrDlg.py,v $
-# $Revision: 1.6 $
-# $Date: 2008/11/04 03:19:42 $
+# $Revision: 1.7 $
+# $Date: 2008/11/04 05:08:55 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -110,7 +110,7 @@ class AutoCorrDlg(wx.Dialog):
         gbs.Add(self.ReplaceWithListCtrl, (row,0), (1,2), wx.TOP | wx.LEFT | wx.EXPAND, 10)
         gbs.Add(self.DeleteButton, (row, 2), wx.DefaultSpan, wx.TOP | wx.LEFT | wx. RIGHT | wx.ALIGN_CENTER, 10)
         row += 1
-        gbs.Add(self.EnableCheckBox, (row, 0), wx.DefaultSpan, wx.TOP | wx.LEFT, 10)
+        gbs.Add(self.EnableCheckBox, (row, 0), (1,2), wx.TOP | wx.LEFT, 10)
         row += 1
 
         self.OkButton = wx.Button(self, wx.ID_OK)
