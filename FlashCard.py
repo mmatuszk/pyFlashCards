@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.17 $
-# $Date: 2008/10/22 06:27:27 $
+# $Revision: 1.18 $
+# $Date: 2008/11/09 01:25:06 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 import fileinput, codecs, os, copy, sys, shutil, tempfile
@@ -112,6 +112,9 @@ class FlashCard:
 #        new.BackImage = self.FrontImage
 #        new.box = self.box
 
+    def Copy(self):
+        return copy.copy(self)
+
     def SetFrontText(self, text):
         self.FrontText = text
 
@@ -155,6 +158,31 @@ class FlashCard:
     def GetBackText(self):
         return self.BackText
 
+
+    def GetFrontHtmlBody(self, face=None, size=5):
+        autobreak = True
+
+        str = ''
+
+        if self.FrontImage:
+            str += "<img src='%s'>" % self.FrontImage
+        str += '<p>'
+        for line in self.FrontText.split('\n'):
+            cmd = line.lstrip().rstrip()
+            if cmd == nab_cmd:
+                autobreak = False
+                continue
+            elif cmd == ab_cmd:
+                autobreak = True
+                continue
+
+            if autobreak:
+                str += line+'<br>'
+            else:
+                str += line
+
+        return str
+
     def GetFrontHtml(self, face=None, size=5):
         autobreak = True
 
@@ -181,6 +209,29 @@ class FlashCard:
                 str += line
 
         str += "</font></p></body></html>"
+
+        return str
+
+    def GetBackHtmlBody(self):
+        autobreak = True
+
+        str = ''
+        if self.BackImage:
+            str += "<img src='%s'>" % self.BackImage
+        str += '<p>'
+        for line in self.BackText.split('\n'):
+            cmd = line.lstrip().rstrip()
+            if cmd == nab_cmd:
+                autobreak = False
+                continue
+            elif cmd == ab_cmd:
+                autobreak = True
+                continue
+
+            if autobreak:
+                str += line+'<br>'
+            else:
+                str += line
 
         return str
 
@@ -648,7 +699,7 @@ class FlashCardSet:
         self.ExportMap = {}
         self.ExportMap[ExportTypeList[0]] = self.ExportXML
         self.ExportMap[ExportTypeList[1]] = self.ExportHTML
-        self.ExportMap[ExportTypeList[1]] = self.ExportHTML2
+        #self.ExportMap[ExportTypeList[1]] = self.ExportHTML2
 
     def Close(self):
         self.RemoveTmpDir()
@@ -1540,31 +1591,134 @@ class FlashCardSet:
         return ct
 
     def ExportHTML(self, filename, chapter):
+        # Make a directory for images
+        root, ext = os.path.splitext(filename)
+        imagedir = root+'_files'
+        shutil.rmtree(imagedir, True)
+        os.mkdir(imagedir)
+
         ct = 0
         Tag = htmlDoc.Tag
 
         doc = htmlDoc.HtmlDocument()
         doc.setHtmlTitle(chapter)
 
+        doc.append(Tag.H1(chapter))
+
         table=Tag.TABLE(None, '100%', 1, "#000000", 4, 0)
         for card in self.Cards[chapter]:
+            ExpCard = card.Copy()
+            # Copy front image
+            srcimg = card.GetFrontImage()
+            if srcimg:
+                # src image is 'tmp1/imagename'
+                # dir = tmp1
+                # fn = imagename
+                dir, fn = os.path.split(srcimg)
+                destimg = os.path.join(imagedir, fn)
+                shutil.copy(srcimg, destimg)
+                d1, d2 = os.path.split(imagedir)
+                relimg = os.path.join(d2, fn)
+                ExpCard.SetFrontImage(relimg)
+            # Copy back image
+            srcimg = card.GetBackImage()
+            if srcimg:
+                # src image is 'tmp1/imagename'
+                # dir = tmp1
+                # fn = imagename
+                dir, fn = os.path.split(srcimg)
+                destimg = os.path.join(imagedir, fn)
+                shutil.copy(srcimg, destimg)
+                d1, d2 = os.path.split(imagedir)
+                relimg = os.path.join(d2, fn)
+                ExpCard.SetBackImage(relimg)
+
             tr = Tag.TR(None, "TOP")
             td = Tag.TD(contents=None, width="50%")
-            for line in card.GetFrontText().split('\n'):
-                td.append(line)
-                td.append(Tag.BR())
+            td.append(ExpCard.GetFrontHtmlBody())
             tr.append(td)
 
             td = Tag.TD(contents=None, width="50%")
-            for line in card.GetBackText().split('\n'):
-                td.append(line)
-                td.append(Tag.BR())
+            td.append(ExpCard.GetBackHtmlBody())
             tr.append(td)
                 
             table.append(tr)
             ct += 1
 
         doc.append(table)
+
+        # Write the document to file
+        f = codecs.open(filename, 'w', 'utf_8')
+        #f = open(filename, 'w')
+        f.write(codecs.BOM_UTF8.decode('utf_8'))
+        doc.writeHtml(f)
+        f.close()
+            
+        return ct
+
+
+    def ExportHTMLAllChapters(self, filename):
+        # Make a directory for images
+        root, ext = os.path.splitext(filename)
+        imagedir = root+'_files'
+        shutil.rmtree(imagedir, True)
+        os.mkdir(imagedir)
+
+        # Get tille = file name w/o ext
+        dir, title = os.path.split(root)
+
+        ct = 0
+        Tag = htmlDoc.Tag
+
+        doc = htmlDoc.HtmlDocument()
+        doc.setHtmlTitle(title)
+
+        chCount = 1
+        for chapter in self.GetChapters():
+            doc.append(Tag.H1('Chapter %d - %s' % (chCount, chapter)))
+            chCount += 1
+
+            table=Tag.TABLE(None, '100%', 1, "#000000", 4, 0)
+            for card in self.Cards[chapter]:
+                ExpCard = card.Copy()
+                # Copy front image
+                srcimg = card.GetFrontImage()
+                if srcimg:
+                    # src image is 'tmp1/imagename'
+                    # dir = tmp1
+                    # fn = imagename
+                    dir, fn = os.path.split(srcimg)
+                    destimg = os.path.join(imagedir, fn)
+                    shutil.copy(srcimg, destimg)
+                    d1, d2 = os.path.split(imagedir)
+                    relimg = os.path.join(d2, fn)
+                    ExpCard.SetFrontImage(relimg)
+                # Copy back image
+                srcimg = card.GetBackImage()
+                if srcimg:
+                    # src image is 'tmp1/imagename'
+                    # dir = tmp1
+                    # fn = imagename
+                    dir, fn = os.path.split(srcimg)
+                    destimg = os.path.join(imagedir, fn)
+                    shutil.copy(srcimg, destimg)
+                    d1, d2 = os.path.split(imagedir)
+                    relimg = os.path.join(d2, fn)
+                    ExpCard.SetBackImage(relimg)
+
+                tr = Tag.TR(None, "TOP")
+                td = Tag.TD(contents=None, width="50%")
+                td.append(ExpCard.GetFrontHtmlBody())
+                tr.append(td)
+
+                td = Tag.TD(contents=None, width="50%")
+                td.append(ExpCard.GetBackHtmlBody())
+                tr.append(td)
+                    
+                table.append(tr)
+                ct += 1
+
+            doc.append(table)
 
         # Write the document to file
         f = codecs.open(filename, 'w', 'utf_8')
