@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.17 $
-# $Date: 2008/11/04 03:22:54 $
+# $Revision: 1.18 $
+# $Date: 2008/11/09 01:23:13 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -34,6 +34,7 @@ import wx
 import os, os.path, user
 import types
 import ConfigParser
+import webbrowser
 
 import wx.html as html
 import wx.wizard as wiz
@@ -77,6 +78,7 @@ ID_LEARNING_LEARNING_MANAGER    = wx.NewId()
 ID_LEARNING_BOX_MANAGER         = wx.NewId()
 ID_LEARNING_RANDOMIZE           = wx.NewId()
 
+ID_TOOLS_VIEW_CH_HTML           = wx.NewId()
 ID_TOOLS_VIEW_ANS               = wx.NewId()
 ID_TOOLS_DISP_DATA              = wx.NewId()
 
@@ -406,6 +408,9 @@ class FlashCardFrame(wx.Frame):
         #-----------------------------------------------------------------------
         ToolsMenu = wx.Menu()
 
+        ToolsMenu.Append(ID_TOOLS_VIEW_CH_HTML, "View chapter as html", 
+                         'View the chapter as html file in the default browsser')
+        ToolsMenu.Enable(ID_TOOLS_VIEW_CH_HTML, False)
         ToolsMenu.Append(ID_TOOLS_VIEW_ANS, "View the answer\tCtrl+V",
                          'View the answer full screen')
         ToolsMenu.Enable(ID_TOOLS_VIEW_ANS, False)
@@ -435,6 +440,8 @@ class FlashCardFrame(wx.Frame):
                   id=ID_LEARNING_BOX_MANAGER)
         self.Bind(wx.EVT_MENU, self.OnRandomizePool,
                   id=ID_LEARNING_RANDOMIZE)
+        self.Bind(wx.EVT_MENU, self.OnViewChapterHtml, 
+                  id=ID_TOOLS_VIEW_CH_HTML)
         self.Bind(wx.EVT_MENU, self.OnViewAns, 
                   id=ID_TOOLS_VIEW_ANS)
         self.Bind(wx.EVT_MENU, self.OnDispData, 
@@ -458,6 +465,7 @@ class FlashCardFrame(wx.Frame):
         self.LearningMenu.Enable(ID_LEARNING_LEARNING_MANAGER, True)
         self.LearningMenu.Enable(ID_LEARNING_BOX_MANAGER, True)
         self.LearningMenu.Enable(ID_LEARNING_RANDOMIZE, True)
+        self.ToolsMenu.Enable(ID_TOOLS_VIEW_CH_HTML, True)
         self.ToolsMenu.Enable(ID_TOOLS_VIEW_ANS, True)
         self.ToolsMenu.Enable(ID_TOOLS_DISP_DATA, True)
 
@@ -475,7 +483,8 @@ class FlashCardFrame(wx.Frame):
         self.LearningMenu.Enable(ID_LEARNING_LEARNING_MANAGER, False)
         self.LearningMenu.Enable(ID_LEARNING_BOX_MANAGER, False)
         self.LearningMenu.Enable(ID_LEARNING_RANDOMIZE, False)
-        self.ToolsMenu.Enable(ID_TOOLS_DISP_VIEW_ANS, False)
+        self.ToolsMenu.Enable(ID_TOOLS_VIEW_CH_HTML, False)
+        self.ToolsMenu.Enable(ID_TOOLS_VIEW_ANS, False)
         self.ToolsMenu.Enable(ID_TOOLS_DISP_DATA, False)
 
     def Save(self):
@@ -697,7 +706,8 @@ class FlashCardFrame(wx.Frame):
             return
 
         #bitmap = wx.Image('icons/wizard.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
-        bitmap = wx.Image('icons/pyFlashCards2-import.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        iconfile = os.path.join(self.runtimepath, 'icons/pyFlashCards2-import.png')
+        bitmap = wx.Image(iconfile, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         wizard = wiz.Wizard(self, -1, "Import Wizard", bitmap)
         page1 = iw.ImportTypePage(wizard, FlashCard.ImportTypeList)
         page2 = iw.FilePage(wizard, self.Config.get('directories', 'import_dir'), FlashCard.ImportWildcard)
@@ -727,7 +737,8 @@ class FlashCardFrame(wx.Frame):
             dlg.ShowModal()
             return
 
-        bitmap = wx.Image('icons/pyFlashCards2-export.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        iconfile = os.path.join(self.runtimepath, 'icons/pyFlashCards2-export.png')
+        bitmap = wx.Image(iconfile, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         wizard = wiz.Wizard(self, -1, "Export Wizard", bitmap)
         page1 = ew.ChapterPage(wizard, self.CardSet.GetChapters())
         page2 = ew.ExportTypePage(wizard)
@@ -880,6 +891,20 @@ class FlashCardFrame(wx.Frame):
         dlg = wx.MessageDialog(self, "Pool randomized", "Info", wx.OK | wx.ICON_INFORMATION)
         dlg.ShowModal()
         
+    def OnViewChapterHtml(self, event):
+        if not self.CardSet or not self.CardSet.GetTestCard():
+            return
+
+        chapter = self.CardSet.GetTestCard().GetChapter()
+
+        sp = wx.StandardPaths.Get()
+        UserDataDir = sp.GetUserDataDir()
+        filename = os.path.join(UserDataDir, chapter+'.html')
+
+        self.CardSet.ExportHTML(filename, chapter)
+
+        webbrowser.open(filename, 0)
+
     def OnViewAns(self, event):
         if not self.CardSet or not self.CardSet.GetTestCard():
             return
