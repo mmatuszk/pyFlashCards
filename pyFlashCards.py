@@ -25,15 +25,16 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.18 $
-# $Date: 2008/11/09 01:23:13 $
-# $Author: marcin201 $
+# $Revision: 1.19 $
+# $Date: 2008/11/28 08:41:38 $
+# $Author: urzumph $
 #-------------------------------------------------------------------------------
 
 import wx
 import os, os.path, user
 import types
 import ConfigParser
+import sys
 import webbrowser
 
 import wx.html as html
@@ -192,6 +193,16 @@ class FlashCardFrame(wx.Frame):
 
         # Open a test files
         self.UtilOpenTestFile()
+
+    def LoadCardSet(self, filename):
+	  self.filename = filename
+	  self.CardSet.Load(self.filename)
+	  self.TestPanel.StartTest()
+
+	  # Update configuration
+	  self.Config.set('directories', 'card_dir', os.path.dirname(filename))
+
+	  self.EnableDataMenu()
 
     def LoadConfig(self):
         self.Config = ConfigParser.SafeConfigParser()
@@ -651,14 +662,7 @@ class FlashCardFrame(wx.Frame):
 
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPaths()[0]
-                self.filename = filename
-                self.CardSet.Load(self.filename)
-                self.TestPanel.StartTest()
-
-                # Update configuration
-                self.Config.set('directories', 'card_dir', os.path.dirname(filename))
-
-                self.EnableDataMenu()
+                LoadCardSet(self, filename)
 
         self.GenerateTitle()
         win = self.FindFocus()
@@ -1430,6 +1434,11 @@ def GetAutoCorrFileName():
     return os.path.join(UserDataDir, AutoCorrFileName)
 
 if __name__ == '__main__':
+    toopen = None
+    if len(sys.argv) == 2:
+	toopen = os.path.abspath(sys.argv[1])
+
+    #print os.getcwd()
     app = wx.PySimpleApp()
     wx.GetApp().SetAppName('pyFlashCards')
     CheckUserDataDir()
@@ -1443,4 +1452,8 @@ if __name__ == '__main__':
 
     win = FlashCardFrame(None, ID_FLASH_CARD_FRAME, help)
     win.Show()
+    #print sys.argv, len(sys.argv)
+    if toopen != None:
+      win.LoadCardSet(toopen)
+    
     app.MainLoop()
