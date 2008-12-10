@@ -420,15 +420,6 @@ class HtmlTagFactory:
     def BODY (self, contents = None):
         return self.section ("BODY", contents)
 
-    def H1 (self, contents = None):
-        return self.section ("H1", contents)
-
-    def H2 (self, contents = None):
-        return self.section ("H2", contents)
-
-    def H3 (self, contents = None):
-        return self.section ("H2", contents)
-
     def P (self, contents = None):
         return self.section ("P", contents)
 
