@@ -25,9 +25,9 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.19 $
-# $Date: 2008/11/28 08:41:38 $
-# $Author: urzumph $
+# $Revision: 1.20 $
+# $Date: 2008/12/10 15:59:34 $
+# $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
 import wx
@@ -192,7 +192,7 @@ class FlashCardFrame(wx.Frame):
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
         # Open a test files
-        self.UtilOpenTestFile()
+        #self.UtilOpenTestFile()
 
     def LoadCardSet(self, filename):
 	  self.filename = filename
@@ -800,10 +800,14 @@ class FlashCardFrame(wx.Frame):
             dlg.ShowModal()
             return
 
+        self.Hide()
+
         dlg = CardManagerDlg(self, self.CardSet, self.Config, self.autocorr, self.help, self.runtimepath)
         dlg.ShowModal()
         self.CardSet, self.Config, self.autocorr = dlg.GetData()
         dlg.Destroy()
+
+        self.Show()
 
         self.TestPanel.Update()
 
