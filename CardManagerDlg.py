@@ -25,14 +25,14 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/CardManagerDlg.py,v $
-# $Revision: 1.15 $
-# $Date: 2008/11/04 06:34:46 $
+# $Revision: 1.16 $
+# $Date: 2008/12/10 15:42:46 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 import wx
 import wx.lib.imagebrowser as ib
 import TextHtmlCtrl as th
-
+import HTMLStrippingParser
 import FlashCard
 import AutoCorrDlg
 import shutil, os
@@ -471,9 +471,8 @@ class CardManagerDlg(wx.Dialog):
     #---------------------------------------------------------------------------
     def AddCards2ListUI(self, list):
         for card in list:
-            front, back = card.GetBothSides()
-            front = front.split('\n')[0]
-            back = back.split('\n')[0]
+            front = card.GetFrontFirstLineNoHtml()
+            back = card.GetBackFirstLineNoHtml()
             # Insert cards at the end of the list by getting the index from the
             # number of items in the list
             index = self.CardListCtrl.GetItemCount()
@@ -483,9 +482,8 @@ class CardManagerDlg(wx.Dialog):
     
     # Insert a card to list UI at the index position
     def InsertCard2ListUI(self, index, card):
-        front, back = card.GetBothSides()
-        front = front.split('\n')[0]
-        back = back.split('\n')[0]
+        front = card.GetFrontFirstLineNoHtml()
+        back = card.GetBackFirstLineNoHtml()
         # Insert cards at the end of the list by getting the index from the
         # number of items in the list
         self.CardListCtrl.InsertStringItem(index, front)            
@@ -592,9 +590,9 @@ class CardManagerDlg(wx.Dialog):
 
             # Update GUI controls
             self.CardListCtrl.SetStringItem(index, 0, 
-                    card.GetFrontText().split('\n')[0])
+                    card.GetFrontFirstLineNoHtml())
             self.CardListCtrl.SetStringItem(index, 1, 
-                    card.GetBackText().split('\n')[0])
+                    card.GetBackFirstLineNoHtml())
             self.CardListCtrl.SetItemState(index, 0, wx.LIST_STATE_SELECTED)
             
             # Update program data
@@ -764,7 +762,8 @@ class CardManagerDlg(wx.Dialog):
             self.CardSet.MoveCard(chapter, index, NewChapter)
             index = self.CardListCtrl.GetNextSelected(index-1)
 
-        self.UpdateCardCountUI()
+        self.ResetCardUI()
+        self.CardEditIndex = -1
 
     def FindNext(self, searchStr, case=False):
         if searchStr == '':
