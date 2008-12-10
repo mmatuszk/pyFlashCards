@@ -3,6 +3,12 @@ Version 0.4.0
 - Added functionality to insert cards above/below a slected card in the CardManager
 - Added functionality to move cards up and down in the CardManager
 - Added functionality to do autocorrect in CardManager
+- Added functionality to move chapters up and down in ChapterManager
+- Added functionality to view the current chapters in a webbrowser as a table
+- Export HTML now includes images
+- Export XML now includes images
+- Import XML now includes images
+- Stripped any HTML tags in CardManager list.  This improves readability of the list
 
 Version 0.3.0
 - Added import XML.
