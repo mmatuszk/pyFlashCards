@@ -37,6 +37,15 @@ class TextHtmlCtrl(wx.TextCtrl):
 
         if event.ControlDown() and not event.ShiftDown() \
                 and not event.AltDown():
+            if keycode == ord('1'):
+                self.H1()
+                return
+            if keycode == ord('2'):
+                self.H2()
+                return
+            if keycode == ord('3'):
+                self.H3()
+                return
             if keycode == ord('B'):
                 self.Bold()
                 return
@@ -104,6 +113,21 @@ class TextHtmlCtrl(wx.TextCtrl):
             self.WriteText(e_tag)
             self.SetSelection(s+len(s_tag), e+len(s_tag))
 
+    def H1(self):
+        s_tag = '<h1>'
+        e_tag = '</h1>'
+
+        self.InsertTag(s_tag, e_tag)
+    def H2(self):
+        s_tag = '<h2>'
+        e_tag = '</h2>'
+
+        self.InsertTag(s_tag, e_tag)
+    def H3(self):
+        s_tag = '<h3>'
+        e_tag = '</h3>'
+
+        self.InsertTag(s_tag, e_tag)
     def Bold(self):
         s_tag = '<b>'
         e_tag = '</b>'
