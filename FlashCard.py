@@ -24,13 +24,14 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.18 $
-# $Date: 2008/11/09 01:25:06 $
+# $Revision: 1.19 $
+# $Date: 2008/12/10 15:46:24 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 import fileinput, codecs, os, copy, sys, shutil, tempfile
 import XMLDoc
 import htmlDoc
+import HTMLStrippingParser
 import random
 import pathutils
 
@@ -48,6 +49,20 @@ ExportExt       = ['xml', 'html']
 # Commands that can be used in front and back text of cards
 nab_cmd = '{nab}'
 ab_cmd  = '{ab}'
+
+# Replacements for tags
+sH1     = ('<h1>', '<font color="blue" size=+1><b>')
+eH1     = ('</h1>', '</b></font>')
+sH2     = ('<h2>', '<font color="green" size=+1><b><i>')
+eH2     = ('</h2>', '</b></i></font>')
+sH3     = ('<h3>', '<font color="green"><u>')
+eH3     = ('</h3>', '</u></font>')
+
+replaceTagList = [
+        (sH1, eH1),
+        (sH2, eH2),
+        (sH3, eH3)
+]
 
 def lindices(list):
     return range(len(list))
@@ -155,9 +170,21 @@ class FlashCard:
     def GetFrontText(self):
         return self.FrontText
 
+    def GetFrontFirstLineNoHtml(self):
+        return HTMLStrippingParser.strip(self.FrontText.split('\n')[0])
+
     def GetBackText(self):
         return self.BackText
 
+    def GetBackFirstLineNoHtml(self):
+        return HTMLStrippingParser.strip(self.BackText.split('\n')[0])
+
+    def ReplaceTags(self, str):
+        for sTag, eTag in replaceTagList:
+            str = str.replace(sTag[0], sTag[1])
+            str = str.replace(eTag[0], eTag[1])
+
+        return str
 
     def GetFrontHtmlBody(self, face=None, size=5):
         autobreak = True
@@ -168,6 +195,7 @@ class FlashCard:
             str += "<img src='%s'>" % self.FrontImage
         str += '<p>'
         for line in self.FrontText.split('\n'):
+            line = self.ReplaceTags(line)
             cmd = line.lstrip().rstrip()
             if cmd == nab_cmd:
                 autobreak = False
@@ -195,6 +223,7 @@ class FlashCard:
             str+=' face="'+face+'"'
         str += ' size=%d>' % size
         for line in self.FrontText.split('\n'):
+            line = self.ReplaceTags(line)
             cmd = line.lstrip().rstrip()
             if cmd == nab_cmd:
                 autobreak = False
@@ -220,6 +249,7 @@ class FlashCard:
             str += "<img src='%s'>" % self.BackImage
         str += '<p>'
         for line in self.BackText.split('\n'):
+            line = self.ReplaceTags(line)
             cmd = line.lstrip().rstrip()
             if cmd == nab_cmd:
                 autobreak = False
@@ -238,7 +268,7 @@ class FlashCard:
     def GetBackHtml(self, face=None, size=5):
         autobreak = True
 
-        str = "<html><body>"
+        str = '<html><body>'
         #str += '<meta content="text/html"; charset="UTF-8">'
         if self.BackImage:
             str += "<img src='%s'>" % self.BackImage
@@ -247,6 +277,7 @@ class FlashCard:
             str+=' face="'+face+'"'
         str += ' size=%d>' % size
         for line in self.BackText.split('\n'):
+            line = self.ReplaceTags(line)
             cmd = line.lstrip().rstrip()
             if cmd == nab_cmd:
                 autobreak = False
@@ -706,7 +737,6 @@ class FlashCardSet:
 
     def ClearAllData(self):
         self.ChapterList = []    
-        self.ChapterNum = {}
         self.SelectedChapterList = []
         self.AvailableChapterList = []
         self.Cards = {}
@@ -747,7 +777,6 @@ class FlashCardSet:
         self.saved = False
         if chapter not in self.ChapterList:
             self.ChapterList.append(chapter)
-            self.ChapterNum[chapter] = len(self.ChapterList)
             self.Cards[chapter] = []
             if available:
                 self.AvailableChapterList.append(chapter)
@@ -767,11 +796,6 @@ class FlashCardSet:
         tmp = self.Cards[OldChapter]
         del self.Cards[OldChapter]
         self.Cards[NewChapter] = tmp
-
-        # Change the key in chapter numbers dictionary
-        tmp = self.ChapterNum[OldChapter]
-        del self.ChapterNum[OldChapter]
-        self.ChapterNum[NewChapter]=tmp
 
         # Change chapter in chapter list
         for chapter, i in zip(self.ChapterList, range(len(self.ChapterList))):
@@ -812,14 +836,46 @@ class FlashCardSet:
         del self.ChapterList[index]
         # Remove chapter's cards
         del self.Cards[chapter]
-        # Removed chapter number
-        del self.ChapterNum[chapter]
-        self.RenumberChapters()
 
-    def RenumberChapters(self):
-        self.saved = False
-        for chapter, i in zip(self.ChapterList, range(len(self.ChapterList))):
-            self.ChapterNum[chapter] = i+1
+    # List is a list of indexes of chapters to be moved up
+    # list has ordered indexes starting with the first one
+    def MoveChaptersUp(self, list):
+        if list[0] == 0:
+            # if first chapter is selcted, nothing to be done
+            return
+
+        for i in list:
+            # First move cards in ChaptersList
+            ch = self.ChapterList.pop(i)
+            self.ChapterList.insert(i-1, ch)
+            # Now move cards in AvailableChapterList
+            try:
+                av_i = self.GetAvailableChapterIndex(ch)
+                ch = self.AvailableChapterList.pop(av_i)
+                self.AvailableChapterList.insert(av_i-1, ch)
+            except FlashCardError:
+                # Nothing to be done
+                pass
+
+    # list is a list of indexes of chapters to be moved down
+    # list has ordered indexes starting with the last one
+    def MoveChaptersDown(self, list):
+        if list[0] == self.GetChapterCount()-1:
+            # if last chapter is selcted, nothing to be done
+            return
+
+        for i in list:
+            # First move cards in ChaptersList
+            ch = self.ChapterList.pop(i)
+            self.ChapterList.insert(i+1, ch)
+            # Now move cards in AvailableChapterList
+            try:
+                av_i = self.GetAvailableChapterIndex(ch)
+                ch = self.AvailableChapterList.pop(av_i)
+                self.AvailableChapterList.insert(av_i+1, ch)
+            except FlashCardError:
+                # Nothing to be done
+                pass
 
     def AddCard(self, chapter, card, check_selected = True):
         # Mark data as dirty
@@ -1063,12 +1119,18 @@ class FlashCardSet:
     def GetChapterName(self, index):
         return self.ChapterList[index]
 
+    # This function returns the index of the chapter in ChapterList
     def GetChapterIndex(self, chapter):
         for c, i in zip(self.ChapterList, range(len(self.ChapterList))):
             if c == chapter:
                 return i
 
         raise FlashCardError("Chapter '%s' does note exist" % chapter)
+
+    # This function returns the number of the chapter, ei, 1, 2, 3 ...
+    #   it is ChapterIndex + 1
+    def GetChapterNum(self, chapter):
+        return self.GetChapterIndex(chapter) + 1
 
     def GetChapterCardCount(self, chapter):
         return len(self.Cards[chapter])
@@ -1077,7 +1139,7 @@ class FlashCardSet:
         return len(self.ChapterList)
 
     def GetChapterLabel(self, chapter):
-        return 'Chapter %d' % self.ChapterNum[chapter]
+        return 'Chapter %d' % self.GetChapterNum(chapter)
 
     def GetSelectedChapters(self):
         return self.SelectedChapterList
@@ -1153,7 +1215,7 @@ class FlashCardSet:
         self.NotLearnChapter(chapter)
 
         del self.SelectedChapterList[ChapterIndex]
-        num = self.ChapterNum[chapter]
+        num = self.GetChapterNum(chapter)
         if num == 1:
             # If it is the first chapter we need special treatment
             self.AvailableChapterList[:0] = [chapter]
@@ -1162,14 +1224,14 @@ class FlashCardSet:
             i = 0
             c = None
             for c in self.AvailableChapterList:
-                if self.ChapterNum[c] > num:
+                if self.GetChapterNum(c) > num:
                     break
                 i += 1
 
             if not c:
                 # There is not chapters in available chapters list
                 self.AvailableChapterList.append(chapter)
-            elif self.ChapterNum[c] > num:
+            elif self.GetChapterNum(c) > num:
                 self.AvailableChapterList[i:i] = [chapter]
             else:
                 self.AvailableChapterList[i+1:i+1] = [chapter]
@@ -1243,7 +1305,7 @@ class FlashCardSet:
             os.remove(filename)
 
         # Make the zip command
-        cmd = 'tar -cjf %s %s' % (filename, self.filedir)
+        cmd = 'tar -cjf "%s" "%s"' % (filename, self.filedir)
         print cmd
         os.system(cmd)
 
@@ -1256,7 +1318,7 @@ class FlashCardSet:
         # Recreate all directories
         self.MakeDirs()
 
-        cmd = 'tar -xjf %s' % filename
+        cmd = 'tar -xjf "%s"' % filename
         print cmd
         os.system(cmd)
 
@@ -1545,6 +1607,8 @@ class FlashCardSet:
     def ImportXML(self, filename, chapter):
         count = 0
 
+        dir, fn = os.path.split(filename)
+
         if chapter not in self.GetChapters():
             return count
 
@@ -1562,14 +1626,33 @@ class FlashCardSet:
                     for back in cardNode.getAll('back_text'):
                         backText = back.getText()
 
+                    frontImage = ''
+                    backImage = ''
+                    for front in cardNode.getAll('front_image'):
+                        src = os.path.join(dir, front.getText())
+                        frontImage = self.GetNextImageName()
+                        shutil.copy(src, frontImage)
+                    for back in cardNode.getAll('back_image'):
+                        src = os.path.join(dir, back.getText())
+                        backImage = self.GetNextImageName()
+                        shutil.copy(src, backImage)
+
                     card = FlashCard(frontText, backText)        
-                    self.AddCard(chapter, FlashCard(frontText, backText))
+                    card.SetFrontImage(frontImage)
+                    card.SetBackImage(backImage)
+                    self.AddCard(chapter, card)
                     
                     count += 1
 
         return count
 
     def ExportXML(self, filename, chapter):
+        # Make a directory for images
+        root, ext = os.path.splitext(filename)
+        imagedir = root+'_files'
+        shutil.rmtree(imagedir, True)
+        os.mkdir(imagedir)
+
         ct = 0
         doc = XMLDoc.XMLDocument()
 
@@ -1580,6 +1663,38 @@ class FlashCardSet:
             node = cardsNode.add('card')
             node.add('front_text').addText(card.GetFrontText())
             node.add('back_text').addText(card.GetBackText())
+
+            ExpCard = card.Copy()
+            # Copy front image
+            srcimg = card.GetFrontImage()
+            if srcimg:
+                # src image is 'tmp1/imagename'
+                # dir = tmp1
+                # fn = imagename
+                dir, fn = os.path.split(srcimg)
+                destimg = os.path.join(imagedir, fn)
+                shutil.copy(srcimg, destimg)
+                d1, d2 = os.path.split(imagedir)
+                relimg = os.path.join(d2, fn)
+                ExpCard.SetFrontImage(relimg)
+            # Copy back image
+            srcimg = card.GetBackImage()
+            if srcimg:
+                # src image is 'tmp1/imagename'
+                # dir = tmp1
+                # fn = imagename
+                dir, fn = os.path.split(srcimg)
+                destimg = os.path.join(imagedir, fn)
+                shutil.copy(srcimg, destimg)
+                d1, d2 = os.path.split(imagedir)
+                relimg = os.path.join(d2, fn)
+                ExpCard.SetBackImage(relimg)
+
+            if ExpCard.FrontImage:
+                node.add('front_image').addText(ExpCard.GetFrontImage())
+            if ExpCard.BackImage:
+                node.add('back_image').addText(ExpCard.GetBackImage())
+
             node.add('chapter').addText(chapter)
             ct += 1
 
