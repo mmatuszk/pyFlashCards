@@ -1,4 +1,3 @@
-#Boa:Dialog:ChapterManagerDlg
 #-------------------------------------------------------------------------------
 # Author:   Marcin Matuszkiewicz
 #-------------------------------------------------------------------------------
@@ -25,9 +24,9 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/ChapterManagerDlg.py,v $
-# $Revision: 1.5 $
-# $Date: 2008/10/04 21:29:51 $
-# $Author: marcin $
+# $Revision: 1.6 $
+# $Date: 2008/12/10 15:43:23 $
+# $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
 import wx
@@ -36,42 +35,76 @@ import FlashCard
 def create(parent):
     return ChapterManagerDlg(parent)
 
-[wxID_CHAPTERMANAGERDLG, wxID_CHAPTERMANAGERDLGCHAPTERLISTCTRL, 
- wxID_CHAPTERMANAGERDLGCHAPTERTITLEENTRY, wxID_CHAPTERMANAGERDLGSTATICTEXT1, 
-] = [wx.NewId() for _init_ctrls in range(4)]
+ID_CHAPTERMANAGERDLG                    = wx.NewId()
+ID_CHAPTERMANAGERDLGCHAPTERLISTCTRL     = wx.NewId()
+ID_CHAPTERMANAGERDLGCHAPTERTITLEENTRY   = wx.NewId()
+ID_CHAPTERMANAGERDLGMOVEUPBUTTON        = wx.NewId()
+ID_CHAPTERMANAGERDLGMOVEDOWNBUTTON      = wx.NewId()
+ID_CHAPTERMANAGERDLGDELETEBUTTON        = wx.NewId()
+
 
 class ChapterManagerDlg(wx.Dialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wx.Dialog.__init__(self, id=wxID_CHAPTERMANAGERDLG,
+        wx.Dialog.__init__(self, id=ID_CHAPTERMANAGERDLG,
               name=u'ChapterManagerDlg', parent=prnt, pos=wx.Point(630, 421),
               size=wx.Size(364, 345),
               style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
               title=u'Chapter Manager')
-        self.SetClientSize(wx.Size(364, 345))
+        self.SetClientSize(wx.Size(365, 345))
 
-        self.ChapterListCtrl = wx.ListCtrl(id=wxID_CHAPTERMANAGERDLGCHAPTERLISTCTRL,
-              name=u'ChapterListCtrl', parent=self, pos=wx.Point(16, 16),
-              size=wx.Size(328, 272), style=wx.LC_REPORT)
+        # Create controls
+        self.ChapterListCtrl = wx.ListCtrl(self, ID_CHAPTERMANAGERDLGCHAPTERLISTCTRL,
+                size=(330, 270), style = wx.LC_REPORT)
+
+        self.MoveUpButton   = wx.Button(self, ID_CHAPTERMANAGERDLGMOVEUPBUTTON, 'Up')
+        self.MoveDownButton = wx.Button(self, ID_CHAPTERMANAGERDLGMOVEDOWNBUTTON, 'Down')
+        self.DeleteButton   = wx.Button(self, ID_CHAPTERMANAGERDLGDELETEBUTTON, 'Delete')
+
+        self.ChapterTitleEntry = wx.TextCtrl(self, ID_CHAPTERMANAGERDLGCHAPTERTITLEENTRY,
+              style=wx.TE_PROCESS_ENTER, value=u'')
+        self.ChapterTitleLabel = wx.StaticText(self, label = 'Chapter title')
+
+        # Bind messages
         self.ChapterListCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
               self.OnChapterListCtrlListItemSelected,
-              id=wxID_CHAPTERMANAGERDLGCHAPTERLISTCTRL)
+              id=ID_CHAPTERMANAGERDLGCHAPTERLISTCTRL)
         self.ChapterListCtrl.Bind(wx.EVT_LIST_ITEM_DESELECTED,
               self.OnChapterListCtrlListItemDeselected,
-              id=wxID_CHAPTERMANAGERDLGCHAPTERLISTCTRL)
+              id=ID_CHAPTERMANAGERDLGCHAPTERLISTCTRL)
         self.ChapterListCtrl.Bind(wx.EVT_CHAR, self.OnChapterListCtrlChar)
 
-        self.ChapterTitleEntry = wx.TextCtrl(id=wxID_CHAPTERMANAGERDLGCHAPTERTITLEENTRY,
-              name=u'ChapterTitleEntry', parent=self, pos=wx.Point(112, 304),
-              size=wx.Size(232, 21), style=wx.TE_PROCESS_ENTER, value=u'')
         self.ChapterTitleEntry.Bind(wx.EVT_TEXT_ENTER,
               self.OnChapterTitleEntryTextEnter,
-              id=wxID_CHAPTERMANAGERDLGCHAPTERTITLEENTRY)
+              id=ID_CHAPTERMANAGERDLGCHAPTERTITLEENTRY)
         self.ChapterTitleEntry.Bind(wx.EVT_CHAR, self.OnChapterTitleEntryChar)
+        self.MoveUpButton.Bind(wx.EVT_BUTTON, self.OnMoveUpButton)
+        self.MoveDownButton.Bind(wx.EVT_BUTTON, self.OnMoveDownButton)
+        self.DeleteButton.Bind(wx.EVT_BUTTON, self.OnDeleteButton)
 
-        self.staticText1 = wx.StaticText(id=wxID_CHAPTERMANAGERDLGSTATICTEXT1,
-              label=u'Chapter title', name='staticText1', parent=self,
-              pos=wx.Point(16, 312), size=wx.Size(56, 13), style=0)
+        # Create a layout 
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
+        hsizer.Add(self.ChapterListCtrl, 1, wx.EXPAND | wx.ALL, 5)
+
+        vsizer = wx.BoxSizer(wx.VERTICAL)
+        vsizer.Add(self.MoveUpButton, 0, wx.ALL, 5)
+        vsizer.Add(self.MoveDownButton, 0, wx.ALL, 5)
+        vsizer.Add(self.DeleteButton, 0, wx.ALL, 5)
+
+        hsizer.Add(vsizer, 0, wx.ALIGN_CENTER_VERTICAL)
+
+        main_sizer.Add(hsizer, 1, wx.EXPAND)
+
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
+        hsizer.Add(self.ChapterTitleLabel, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        hsizer.Add(self.ChapterTitleEntry, 1, wx.EXPAND | wx.ALL, 15) 
+        main_sizer.Add(hsizer, 0, wx.EXPAND)
+
+        self.SetSizer(main_sizer)
+        self.Fit()
+
 
     def __init__(self, parent, CardSet):
         self._init_ctrls(parent)
@@ -81,8 +114,8 @@ class ChapterManagerDlg(wx.Dialog):
         self.OldChapterTitle = ''
 
         width = self.ChapterListCtrl.GetSize()[0]-4
-        self.ChapterListCtrl.InsertColumn(0, "Chapter", width = width*0.2)
-        self.ChapterListCtrl.InsertColumn(1, "Title", width = width*0.8)
+        self.ChapterListCtrl.InsertColumn(0, "Chapter", width = width*0.35)
+        self.ChapterListCtrl.InsertColumn(1, "Title", width = width*0.6)
 
         self.AddChapters2List(self.CardSet.GetChapters())
 
@@ -149,19 +182,7 @@ class ChapterManagerDlg(wx.Dialog):
     def OnChapterListCtrlChar(self, event):
         keycode = event.GetKeyCode()
         if keycode == wx.WXK_DELETE or keycode == wx.WXK_BACK:
-            index = self.ChapterListCtrl.GetFirstSelected()
-            
-            while index != -1:
-                item = self.ChapterListCtrl.GetItem(index, 1)
-                chapter = item.GetText()
-                self.CardSet.RemoveChapter(chapter)
-                self.ChapterListCtrl.DeleteItem(index)
-                index = self.ChapterListCtrl.GetNextSelected(index-1)
-
-            self.ChapterListCtrl.DeleteAllItems()
-            self.AddChapters2List(self.CardSet.GetChapters())
-            self.ChapterEditIndex = -1
-            self.ChapterTitleEntry.SetValue('')
+            self.DeleteSelectedChapters()
         elif keycode == wx.WXK_ESCAPE:
             index = self.ChapterListCtrl.GetFirstSelected()
             
@@ -183,3 +204,81 @@ class ChapterManagerDlg(wx.Dialog):
                 self.ChapterEditIndex = -1
         else:
             event.Skip()
+
+    def OnMoveUpButton(self, event):
+        self.MoveSelectedChaptersUp()
+
+    def OnMoveDownButton(self, event):
+        self.MoveSelectedChaptersDown()
+
+    def OnDeleteButton(self, event):
+        self.DeleteSelectedChapters()
+
+    def DeleteSelectedChapters(self):
+        index = self.ChapterListCtrl.GetFirstSelected()
+        
+        while index != -1:
+            item = self.ChapterListCtrl.GetItem(index, 1)
+            chapter = item.GetText()
+            self.CardSet.RemoveChapter(chapter)
+            self.ChapterListCtrl.DeleteItem(index)
+            index = self.ChapterListCtrl.GetNextSelected(index-1)
+
+        self.ChapterListCtrl.DeleteAllItems()
+        self.AddChapters2List(self.CardSet.GetChapters())
+        self.ChapterEditIndex = -1
+        self.ChapterTitleEntry.SetValue('')
+
+    def MoveSelectedChaptersUp(self):
+        # get info about selected card
+        first = self.ChapterListCtrl.GetFirstSelected()
+        # if no cards are selected or we are already at the top of the list, exit 
+        if first < 1:
+            return
+
+        list = [first]
+
+        i = first
+        while i != -1:
+            i = self.ChapterListCtrl.GetNextSelected(i)
+            if i > 0:
+                list.append(i)
+
+        # move cards around in the card set
+        self.CardSet.MoveChaptersUp(list)
+
+        # update the state of the card list control
+        self.ChapterListCtrl.DeleteAllItems()
+        self.AddChapters2List(self.CardSet.GetChapters())
+        for i in list:
+            self.ChapterListCtrl.SetItemState(i-1, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+
+    def MoveSelectedChaptersDown(self):
+        # get info about selected card
+        first = self.ChapterListCtrl.GetFirstSelected()
+        # if no cards are selected or we are already at the top of the list, exit 
+        if first == -1:
+            return
+
+        list = [first]
+
+        i = first
+        while i != -1:
+            i = self.ChapterListCtrl.GetNextSelected(i)
+            if i > 0:
+                list.append(i)
+
+        list.reverse()
+
+        if list[0] == self.ChapterListCtrl.GetItemCount() - 1:
+            # if the last item is selected there is nothing to do
+            return
+
+        # move cards around in the card set
+        self.CardSet.MoveChaptersDown(list)
+
+        # update the state of the card list control
+        self.ChapterListCtrl.DeleteAllItems()
+        self.AddChapters2List(self.CardSet.GetChapters())
+        for i in list:
+            self.ChapterListCtrl.SetItemState(i+1, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
