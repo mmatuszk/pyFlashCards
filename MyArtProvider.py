@@ -1,9 +1,9 @@
 import  wx
 import os.path
 
-ART_FORMAT_TEXT_BOLD         = wx.NewId()
-ART_FORMAT_TEXT_ITALIC       = wx.NewId()
-ART_FORMAT_TEXT_UNDERLINE    = wx.NewId()
+ART_FORMAT_TEXT_BOLD         = u'ART_FORMAT_TEXT_BOLD'
+ART_FORMAT_TEXT_ITALIC       = u'ART_FORMAT_TEXT_ITALIC'
+ART_FORMAT_TEXT_UNDERLINE    = u'ART_FORMAT_TEXT_UNDERLINE'
 
 class TangoArtProvider(wx.ArtProvider):
     def __init__(self, runtimepath):
