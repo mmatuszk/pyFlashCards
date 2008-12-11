@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.23 $
-# $Date: 2008/12/11 19:14:51 $
+# $Revision: 1.24 $
+# $Date: 2008/12/11 19:23:31 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -205,7 +205,6 @@ class FlashCardFrame(wx.Frame):
 
     def LoadCardSet(self, filename):
         self.filename = filename
-        self.CardSet = FlashCard.FlashCardSet()
         self.CardSet.Load(self.filename)
         self.TestPanel.StartTest()
 
