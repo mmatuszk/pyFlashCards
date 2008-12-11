@@ -27,8 +27,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/AutoCorrDlg.py,v $
-# $Revision: 1.9 $
-# $Date: 2008/11/04 05:41:25 $
+# $Revision: 1.10 $
+# $Date: 2008/12/11 02:13:29 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -81,13 +81,18 @@ class AutoCorrDlg(wx.Dialog):
         self.ReplaceTextCtrl = wx.TextCtrl(self, -1)
         self.WithTextCtrl = wx.TextCtrl(self, -1)
         self.NewReplaceButton = wx.Button(self, ID_AUTOCORRDLG_ON_NEW_REPLACE, 'New')
-        self.ReplaceWithListCtrl = wx.ListCtrl(self, -1, size=(100, 350), style=
+        self.ReplaceWithListCtrl = wx.ListCtrl(self, -1, style=
                 wx.LC_REPORT | 
                 wx.LC_NO_HEADER |
                 wx.LC_SINGLE_SEL |
                 wx.BORDER_SUNKEN)
         self.DeleteButton = wx.Button(self, ID_AUTOCORRDLG_ON_DELETE, 'Delete')
         self.EnableCheckBox = wx.CheckBox(self, -1, 'Enable Autocorrect')
+
+        # Call SetInitialSize for ReplaceWithListCtrl.  For some reason
+        # this is necessary for py2app to work correctly.  Size set in the
+        # initiation of the object did not work.
+        self.ReplaceWithListCtrl.SetInitialSize((100, 350))
 
         # Disable buttons
         self.NewReplaceButton.Disable()
