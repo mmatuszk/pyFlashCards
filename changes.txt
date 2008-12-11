@@ -9,6 +9,9 @@ Version 0.4.0
 - Export XML now includes images
 - Import XML now includes images
 - Stripped any HTML tags in CardManager list.  This improves readability of the list
+- Buttons for bold, italic, underline in CardManager
+- Load files from command line (Chr)
+- Mini interface for openm (Chr)
 
 Version 0.3.0
 - Added import XML.
