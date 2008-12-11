@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.21 $
-# $Date: 2008/12/11 00:25:37 $
+# $Revision: 1.22 $
+# $Date: 2008/12/11 00:40:06 $
 # $Author: urzumph $
 #-------------------------------------------------------------------------------
 
@@ -635,18 +635,8 @@ class FlashCardFrame(wx.Frame):
 
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPaths()[0]
-                self.filename = filename
-                self.CardSet = FlashCard.FlashCardSet()
-                self.CardSet.Load(self.filename)
-                self.TestPanel.SetCardSet(self.CardSet)
-                self.TestPanel.Show(True)
-                self.TestPanel.StartTest()
-                self.Layout()
+                self.Open(filename)
                 
-                # Update configuration
-                self.Config.set('directories', 'card_dir', os.path.dirname(filename))
-
-                self.EnableDataMenu()
         else:
             if not self.CardSet.IsSaved():
                 dlg = wx.MessageDialog(self, "Active set not saved.  Do you want to save it.", "Warning",
@@ -672,6 +662,19 @@ class FlashCardFrame(wx.Frame):
         self.GenerateTitle()
         win = self.FindFocus()
         print win.GetName()
+    
+    def Open(self, filename):
+        self.filename = filename
+        self.CardSet = FlashCard.FlashCardSet()
+        self.CardSet.Load(self.filename)
+        self.TestPanel.SetCardSet(self.CardSet)
+        self.TestPanel.Show(True)
+        self.TestPanel.StartTest()
+        self.Layout()
+        # Update configuration
+        self.Config.set('directories', 'card_dir', os.path.dirname(filename))
+
+        self.EnableDataMenu()
 
     def CloseCardSet(self):
         self.CardSet.Close()
@@ -1477,6 +1480,6 @@ if __name__ == '__main__':
     win.Show()
     #print sys.argv, len(sys.argv)
     if toopen != None:
-      win.LoadCardSet(toopen)
+      win.Open(toopen)
     
     app.MainLoop()
