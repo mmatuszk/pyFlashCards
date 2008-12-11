@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/LearningManagerDlg.py,v $
-# $Revision: 1.5 $
-# $Date: 2008/10/20 02:43:05 $
+# $Revision: 1.6 $
+# $Date: 2008/12/11 18:59:19 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -61,17 +61,17 @@ class LearningManagerDlg(wx.Dialog):
               label=u'Selected chapters', name='staticText2', parent=self,
               pos=wx.Point(336, 16), size=wx.Size(86, 13), style=0)
 
-        iconfile = os.path.join(self.runtimepath, u'icons/right_arrow.png')
-        self.AddButton = wx.BitmapButton(bitmap=wx.Bitmap(iconfile,
-              wx.BITMAP_TYPE_PNG), id=wxID_LEARNINGMANAGERDLGADDBUTTON,
+        bitmap = wx.ArtProvider.GetBitmap(wx.ART_GO_FORWARD, wx.ART_BUTTON, (32, 32))
+        self.AddButton = wx.BitmapButton(bitmap=bitmap,
+              id=wxID_LEARNINGMANAGERDLGADDBUTTON,
               name=u'AddButton', parent=self, pos=wx.Point(272, 144),
               size=wx.Size(34, 34), style=wx.BU_AUTODRAW)
         self.AddButton.Bind(wx.EVT_BUTTON, self.OnAddButtonButton,
               id=wxID_LEARNINGMANAGERDLGADDBUTTON)
 
-        iconfile = os.path.join(self.runtimepath, u'icons/left_arrow.png')
-        self.RemoveButton = wx.BitmapButton(bitmap=wx.Bitmap(iconfile,
-              wx.BITMAP_TYPE_PNG), id=wxID_LEARNINGMANAGERDLGREMOVEBUTTON,
+        bitmap = wx.ArtProvider.GetBitmap(wx.ART_GO_BACK, wx.ART_BUTTON, (32, 32))
+        self.RemoveButton = wx.BitmapButton(bitmap=bitmap,
+              id=wxID_LEARNINGMANAGERDLGREMOVEBUTTON,
               name=u'RemoveButton', parent=self, pos=wx.Point(272, 192),
               size=wx.Size(34, 34), style=wx.BU_AUTODRAW)
         self.RemoveButton.Bind(wx.EVT_BUTTON, self.OnRemoveButtonButton,
