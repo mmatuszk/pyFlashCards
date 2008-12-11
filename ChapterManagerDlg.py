@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/ChapterManagerDlg.py,v $
-# $Revision: 1.6 $
-# $Date: 2008/12/10 15:43:23 $
+# $Revision: 1.7 $
+# $Date: 2008/12/11 18:59:55 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -45,7 +45,6 @@ ID_CHAPTERMANAGERDLGDELETEBUTTON        = wx.NewId()
 
 class ChapterManagerDlg(wx.Dialog):
     def _init_ctrls(self, prnt):
-        # generated method, don't edit
         wx.Dialog.__init__(self, id=ID_CHAPTERMANAGERDLG,
               name=u'ChapterManagerDlg', parent=prnt, pos=wx.Point(630, 421),
               size=wx.Size(364, 345),
