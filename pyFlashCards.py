@@ -25,9 +25,9 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.22 $
-# $Date: 2008/12/11 00:40:06 $
-# $Author: urzumph $
+# $Revision: 1.23 $
+# $Date: 2008/12/11 19:14:51 $
+# $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
 import wx
@@ -39,6 +39,7 @@ import webbrowser
 
 import wx.html as html
 import wx.wizard as wiz
+import MyArtProvider
 
 
 from CardManagerDlg import *
@@ -111,7 +112,7 @@ AutoCorrFileName    = 'autocorr.xml'
 ApplicationName = 'pyFlashCards'
 
 DefaultWinWidth     = 1024
-DefaultWinHeight    = 800
+DefaultWinHeight    = 700
 
 # Display modes
 mode_default = 1
@@ -159,6 +160,9 @@ class FlashCardFrame(wx.Frame):
         self.LoadConfig()
         self.LoadAutoCorr()
 
+
+        wx.ArtProvider.Push( MyArtProvider.TangoArtProvider(self.runtimepath) )
+
         iconfile = os.path.join(self.runtimepath, 'icons/pyFlashCards2-32x32.ico')
         icon = wx.Icon(iconfile, wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
@@ -200,14 +204,15 @@ class FlashCardFrame(wx.Frame):
         #self.UtilOpenTestFile()
 
     def LoadCardSet(self, filename):
-	  self.filename = filename
-	  self.CardSet.Load(self.filename)
-	  self.TestPanel.StartTest()
+        self.filename = filename
+        self.CardSet = FlashCard.FlashCardSet()
+        self.CardSet.Load(self.filename)
+        self.TestPanel.StartTest()
 
-	  # Update configuration
-	  self.Config.set('directories', 'card_dir', os.path.dirname(filename))
+        # Update configuration
+        self.Config.set('directories', 'card_dir', os.path.dirname(filename))
 
-	  self.EnableDataMenu()
+        self.EnableDataMenu()
 
     def LoadConfig(self):
         self.Config = ConfigParser.SafeConfigParser()
@@ -657,7 +662,7 @@ class FlashCardFrame(wx.Frame):
 
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPaths()[0]
-                LoadCardSet(self, filename)
+                self.LoadCardSet(filename)
 
         self.GenerateTitle()
         win = self.FindFocus()
@@ -1480,6 +1485,7 @@ if __name__ == '__main__':
     win.Show()
     #print sys.argv, len(sys.argv)
     if toopen != None:
-      win.Open(toopen)
+        win.Open(toopen)
+        win.GenerateTitle()
     
     app.MainLoop()
