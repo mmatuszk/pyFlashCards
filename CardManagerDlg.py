@@ -25,13 +25,14 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/CardManagerDlg.py,v $
-# $Revision: 1.16 $
-# $Date: 2008/12/10 15:42:46 $
+# $Revision: 1.17 $
+# $Date: 2008/12/11 22:11:01 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 import wx
 import wx.lib.imagebrowser as ib
 import TextHtmlCtrl as th
+import MyArtProvider as ap
 import HTMLStrippingParser
 import FlashCard
 import AutoCorrDlg
@@ -139,18 +140,49 @@ class CardManagerDlg(wx.Dialog):
               self.OnRemoveBackImageButtonButton,
               id=ID_CMDLG_REMOVEBACKIMAGEBTN)
 
+        img = wx.ArtProvider.GetBitmap(ap.ART_FORMAT_TEXT_BOLD, wx.ART_BUTTON, (16, 16))
+        self.FrontBoldButton = wx.BitmapButton(self, -1, img, style=wx.NO_BORDER)
+        self.FrontBoldButton.Bind(wx.EVT_BUTTON, self.OnFrontBoldButton)
+
+        img = wx.ArtProvider.GetBitmap(ap.ART_FORMAT_TEXT_ITALIC, wx.ART_BUTTON, (16, 16))
+        self.FrontItalicButton = wx.BitmapButton(self, -1, img, style=wx.NO_BORDER)
+        self.FrontItalicButton.Bind(wx.EVT_BUTTON, self.OnFrontItalicButton)
+
+        img = wx.ArtProvider.GetBitmap(ap.ART_FORMAT_TEXT_UNDERLINE, wx.ART_BUTTON, (16, 16))
+        self.FrontUnderlineButton = wx.BitmapButton(self, -1, img, style=wx.NO_BORDER)
+        self.FrontUnderlineButton.Bind(wx.EVT_BUTTON, self.OnFrontUnderlineButton)
+
+        img = wx.ArtProvider.GetBitmap(ap.ART_FORMAT_TEXT_BOLD, wx.ART_BUTTON, (16, 16))
+        self.BackBoldButton = wx.BitmapButton(self, -1, img, style=wx.NO_BORDER)
+        self.BackBoldButton.Bind(wx.EVT_BUTTON, self.OnBackBoldButton)
+
+        img = wx.ArtProvider.GetBitmap(ap.ART_FORMAT_TEXT_ITALIC, wx.ART_BUTTON, (16, 16))
+        self.BackItalicButton = wx.BitmapButton(self, -1, img, style=wx.NO_BORDER)
+        self.BackItalicButton.Bind(wx.EVT_BUTTON, self.OnBackItalicButton)
+
+        img = wx.ArtProvider.GetBitmap(ap.ART_FORMAT_TEXT_UNDERLINE, wx.ART_BUTTON, (16, 16))
+        self.BackUnderlineButton = wx.BitmapButton(self, -1, img, style=wx.NO_BORDER)
+        self.BackUnderlineButton.Bind(wx.EVT_BUTTON, self.OnBackUnderlineButton)
+
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         # entry sizer: front
         entry_sizer_row = wx.BoxSizer(wx.HORIZONTAL)
+        entry_sizer_ed_tools = wx.BoxSizer(wx.HORIZONTAL)
+        entry_sizer_editor = wx.BoxSizer(wx.VERTICAL)
         entry_sizer_img = wx.BoxSizer(wx.VERTICAL)
 
+        entry_sizer_ed_tools.Add(self.FrontBoldButton, 0, wx.ALL, 2)
+        entry_sizer_ed_tools.Add(self.FrontItalicButton, 0, wx.ALL, 2)
+        entry_sizer_ed_tools.Add(self.FrontUnderlineButton, 0, wx.ALL, 2)
+        entry_sizer_editor.Add(entry_sizer_ed_tools, 0)
+        entry_sizer_editor.Add(self.FrontEntry, 1, wx.EXPAND)
         entry_sizer_img.Add(self.FrontImageButton, 0, wx.ALIGN_CENTER)
         entry_sizer_img.Add(self.RemoveFrontImageButton, 0, wx.ALIGN_CENTER)
 
         entry_sizer_row.Add(frontlabel, 0, wx.ALIGN_TOP)
         entry_sizer_row.AddSpacer(hspacer)
-        entry_sizer_row.Add(self.FrontEntry, 1, wx.EXPAND)
+        entry_sizer_row.Add(entry_sizer_editor, 1, wx.EXPAND)
         entry_sizer_row.Add(entry_sizer_img, 0, wx.ALIGN_CENTER)
         
         sizer.Add(entry_sizer_row, 1, wx.EXPAND)
@@ -158,14 +190,21 @@ class CardManagerDlg(wx.Dialog):
 
         # entry sizer: back
         entry_sizer_row = wx.BoxSizer(wx.HORIZONTAL)
+        entry_sizer_ed_tools = wx.BoxSizer(wx.HORIZONTAL)
+        entry_sizer_editor = wx.BoxSizer(wx.VERTICAL)
         entry_sizer_img = wx.BoxSizer(wx.VERTICAL)
 
+        entry_sizer_ed_tools.Add(self.BackBoldButton, 0, wx.ALL, 2)
+        entry_sizer_ed_tools.Add(self.BackItalicButton, 0, wx.ALL, 2)
+        entry_sizer_ed_tools.Add(self.BackUnderlineButton, 0, wx.ALL, 2)
+        entry_sizer_editor.Add(entry_sizer_ed_tools, 0)
+        entry_sizer_editor.Add(self.BackEntry, 1, wx.EXPAND)
         entry_sizer_img.Add(self.BackImageButton, 0, wx.ALIGN_CENTER)
         entry_sizer_img.Add(self.RemoveBackImageButton, 0, wx.ALIGN_CENTER)
 
         entry_sizer_row.Add(backlabel, 0, wx.ALIGN_TOP)
         entry_sizer_row.AddSpacer(hspacer)
-        entry_sizer_row.Add(self.BackEntry, 1, wx.EXPAND)
+        entry_sizer_row.Add(entry_sizer_editor, 1, wx.EXPAND)
         entry_sizer_row.Add(entry_sizer_img, 0, wx.ALIGN_CENTER)
 
         sizer.Add(entry_sizer_row, 1, wx.EXPAND)
@@ -1079,6 +1118,24 @@ class CardManagerDlg(wx.Dialog):
 
     def OnFindPrev(self, event):
         self.FindPrev(self.SearchCtrl.GetValue())
+    
+    def OnFrontBoldButton(self, event):
+        self.FrontEntry.Bold()
+
+    def OnFrontItalicButton(self, event):
+        self.FrontEntry.Italic()
+
+    def OnFrontUnderlineButton(self, event):
+        self.FrontEntry.Underline()
+
+    def OnBackBoldButton(self, event):
+        self.BackEntry.Bold()
+
+    def OnBackItalicButton(self, event):
+        self.BackEntry.Italic()
+
+    def OnBackUnderlineButton(self, event):
+        self.BackEntry.Underline()
 
 def MakeButtonBitmap(filename, bsize, pad=10):
         bw, bh = bsize
