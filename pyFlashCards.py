@@ -25,9 +25,9 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.20 $
-# $Date: 2008/12/10 15:59:34 $
-# $Author: marcin201 $
+# $Revision: 1.21 $
+# $Date: 2008/12/11 00:25:37 $
+# $Author: urzumph $
 #-------------------------------------------------------------------------------
 
 import wx
@@ -113,6 +113,11 @@ ApplicationName = 'pyFlashCards'
 DefaultWinWidth     = 1024
 DefaultWinHeight    = 800
 
+# Display modes
+mode_default = 1
+mode_mini = 2
+
+display_mode = mode_default
 
 TestHtml=\
 """
@@ -1019,37 +1024,51 @@ class TestPanel(wx.Panel):
 
         sizer11 = wx.BoxSizer(wx.VERTICAL)
         sizer111 = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, -1, 'Front font:')
-        sizer111.Add(label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.FrontFontLabel = wx.StaticText(self, -1, 'Front font:')
+        sizer111.Add(self.FrontFontLabel, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
         self.FrontFontFaceChoice = wx.Choice(self, ID_TP_FRONT_FONT_FACE, 
                                               choices=self.FontList)
         sizer111.Add(self.FrontFontFaceChoice, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-        label = wx.StaticText(self, -1, 'Size: ')
-        sizer111.Add(label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.FrontSizeLabel = wx.StaticText(self, -1, 'Size: ')
+        sizer111.Add(self.FrontSizeLabel, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
         self.FrontFontSizeChoice = wx.Choice(self, ID_TP_FRONT_FONT_SIZE,
                                               choices=self.FontSizeList)
         sizer111.Add(self.FrontFontSizeChoice, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
         #self.FrontDisp = html.HtmlWindow(self, -1, style=wx.SUNKEN_BORDER | wx.HSCROLL)
 
-        sizer11.Add(sizer111, 0)
+        if display_mode == mode_mini:
+            self.FrontFontSizeChoice.Hide()
+            self.FrontFontFaceChoice.Hide()
+            self.FrontFontLabel.Hide()
+            self.FrontSizeLabel.Hide()
+
+        if display_mode != mode_mini:
+            sizer11.Add(sizer111, 0)
         #sizer11.Add(self.FrontDisp, 1, wx.EXPAND)
         sizer1.Add(sizer11, 1, wx.EXPAND)
 
         sizer11 = wx.BoxSizer(wx.VERTICAL)
         sizer111 = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, -1, 'Back font: ')
-        sizer111.Add(label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.BackFontLabel = wx.StaticText(self, -1, 'Back font: ')
+        sizer111.Add(self.BackFontLabel, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
         self.BackFontFaceChoice = wx.Choice(self, ID_TP_BACK_FONT_FACE, 
                                               choices=self.FontList)
         sizer111.Add(self.BackFontFaceChoice, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-        label = wx.StaticText(self, -1, 'Size: ')
-        sizer111.Add(label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.BackSizeLabel = wx.StaticText(self, -1, 'Size: ')
+        sizer111.Add(self.BackSizeLabel, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
         self.BackFontSizeChoice = wx.Choice(self, ID_TP_BACK_FONT_SIZE,
                                               choices=self.FontSizeList)
         sizer111.Add(self.BackFontSizeChoice, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
         #self.BackDisp = html.HtmlWindow(self, -1, style=wx.SUNKEN_BORDER | wx.HSCROLL)
 
-        sizer11.Add(sizer111, 0)
+        if display_mode == mode_mini:
+            self.BackFontSizeChoice.Hide()
+            self.BackFontFaceChoice.Hide()
+            self.BackFontLabel.Hide()
+            self.BackSizeLabel.Hide()
+
+        if display_mode != mode_mini:
+            sizer11.Add(sizer111, 0)
         #sizer11.Add(self.BackDisp, 1, wx.EXPAND)
         sizer1.Add(sizer11, 1, wx.EXPAND)
 
