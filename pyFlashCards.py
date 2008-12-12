@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.24 $
-# $Date: 2008/12/11 19:23:31 $
+# $Revision: 1.25 $
+# $Date: 2008/12/12 16:07:08 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -1478,7 +1478,7 @@ if __name__ == '__main__':
     sp = wx.StandardPaths.Get()
     UserDataDir = sp.GetUserDataDir()
     help.SetTempDir(UserDataDir)
-    help.AddBook('help.zip', 1)
+    help.AddBook('help/help.zip', 1)
 
     win = FlashCardFrame(None, ID_FLASH_CARD_FRAME, help)
     win.Show()
