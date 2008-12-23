@@ -1,0 +1,18 @@
+<ul>
+  <li> <object type="text/sitemap">
+           <param name="Name" value="Contents">
+           <param name="Local" value="contents.htm">
+       </object>
+  <li> <object type="text/sitemap">
+           <param name="Name" value="Copyrights and license">
+           <param name="Local" value="license.htm">
+       </object>
+  <li> <object type="text/sitemap">
+           <param name="Name" value="Card Manager">
+           <param name="Local" value="cardman.htm">
+       </object>
+  <li> <object type="text/sitemap">
+           <param name="Name" value="About">
+           <param name="Local" value="about.htm">
+       </object>
+</ul>

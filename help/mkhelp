@@ -1,0 +1,2 @@
+#!/bin/sh
+zip -u help.zip pyFlashCards.hh? *.htm
