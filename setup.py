@@ -32,8 +32,10 @@ DATA_FILES = [  ('icons', ['icons/pyFlashCards2-32x32.ico',
                     'icons/tango/32x32/actions/format-text-bold.png',
                     'icons/tango/32x32/actions/format-text-italic.png',
                     'icons/tango/32x32/actions/format-text-underline.png']),
-                ('autocorr', ['autocorr/autocorr.xml'])]
-OPTIONS = {'argv_emulation': True, 'iconfile': 'icons/pyFlashCards2-32x32.icns'}
+                ('autocorr', ['autocorr/autocorr.xml']),
+                ('help', ['help/help.zip']),
+                ('', ['rev.cfg'])]
+OPTIONS = {'argv_emulation': True, 'iconfile': 'icons/pyFlashCards2-128x128.icns'}
 
 setup(
     name='pyFlashCards',
