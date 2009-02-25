@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.19 $
-# $Date: 2008/12/10 15:46:24 $
+# $Revision: 1.20 $
+# $Date: 2009/02/25 03:02:02 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 import fileinput, codecs, os, copy, sys, shutil, tempfile
@@ -536,18 +536,28 @@ class TestSet:
     def RemoveCards(self, cards):
         for card in cards:
             # First check if the card is being learned
-                if card == self.TestCard:
-                    self.TestCard = None
-                    self.TestCardBox = -1
-                    card.SetBox(-1)
-                else:
-                    box = self.box[card.GetBox()]
+            if card == self.TestCard:
+                self.TestCard = None
+                self.TestCardBox = -1
+                card.SetBox(-1)
+            else:
+                boxIndex = card.GetBox()
+                if boxIndex >= 0:
+                    # Check if the card is in a box.  Every card should be in a box when this function is called, so
+                    # this is just to handle a bug somewhere else gracefully.
+                    box = self.box[boxIndex]
                     for BoxCard, i in zip(box.GetCards(), range(box.GetCardCount())):
                         if BoxCard == card:
                             break
                     
-                    if BoxCard == card:
-                        box.RemoveCard(i)
+                    if BoxCard:
+                        if BoxCard == card:
+                            box.RemoveCard(i)
+                else:
+                    print "TestSet.RemoveCards Warning"
+                    print "Card not in a box.  It should be"
+                    print "Front", card.GetFrontFirstLineNoHtml()
+                    print "Back", card.GetBackFirstLineNoHtml()
 
     # Function removes a cards from study boxes
     def RemoveCard(self, card):
@@ -945,10 +955,10 @@ class FlashCardSet:
             self.TestSet.RemoveCard(card)
 
         if card.GetFrontImage():
-            os.remove(self.GetFrontImage())
+            os.remove(card.GetFrontImage())
 
         if card.GetBackImage():
-            os.remove(self.GetBackImage())
+            os.remove(card.GetBackImage())
 
         del self.Cards[chapter][index]
             
