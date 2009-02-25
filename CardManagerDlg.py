@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/CardManagerDlg.py,v $
-# $Revision: 1.17 $
-# $Date: 2008/12/11 22:11:01 $
+# $Revision: 1.18 $
+# $Date: 2009/02/25 02:59:33 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 import wx
@@ -71,6 +71,19 @@ hspacer = (10,1)
 vspacer = (1, 10)
 
 class CardManagerDlg(wx.Dialog):
+    def MakeToolbarUI(self, parent):
+        img = wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_BUTTON, (16, 16))
+        self.SaveButton = wx.BitmapButton(self, -1, img, style=wx.NO_BORDER)
+        self.SaveButton.Bind(wx.EVT_BUTTON, self.OnSave)
+
+        if self.filename == None:
+            self.SaveButton.Disable()
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.SaveButton, 0, wx.ALL, 2)
+
+        return sizer
+
     def MakeChaptersUI(self, parent):
         chapterlabel = wx.StaticText(parent, -1, 'Chapters')
         self.ChaptersChoice = wx.Choice(choices=[],
@@ -340,6 +353,7 @@ class CardManagerDlg(wx.Dialog):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         # Make entry before chapters to get focus on front entry
         entry_sizer = self.MakeEntryUI(self)
+        tb_sizer = self.MakeToolbarUI(self)
         ch_sizer = self.MakeChaptersUI(self)
         find_sizer = self.MakeFindUI(self)
         ct_sizer = self.MakeCardCountUI(self)
@@ -347,6 +361,7 @@ class CardManagerDlg(wx.Dialog):
 
         # col 1
         sizer_col = wx.BoxSizer(wx.VERTICAL)
+        sizer_col.Add(tb_sizer, 0, wx.EXPAND)
         sizer_col.Add(ch_sizer, 0, wx.EXPAND)
         sizer_col.AddSpacer((1,15))
         sizer_col.Add(entry_sizer, 1, wx.EXPAND)
@@ -365,11 +380,12 @@ class CardManagerDlg(wx.Dialog):
 
         self.SetSizer(sizer)
 
-    def __init__(self, parent, CardSet, Config, autocorr, help, runtimepath, size=(1024, 700)):
+    def __init__(self, parent, CardSet, filename, Config, autocorr, help, runtimepath, size=(1024, 700)):
         self.help = help
         self.runtimepath = runtimepath
         self.autocorr = autocorr
         self.CardSet = CardSet
+        self.filename = filename
         self.Config = Config
         if Config:
             w = self.Config.getint('card_browser', 'width')
@@ -532,6 +548,10 @@ class CardManagerDlg(wx.Dialog):
         dest = self.CardSet.GetNextImageName()
         shutil.copy(src, dest)
         return dest
+
+    def OnSave(self, event):
+        if self.filename:
+            self.CardSet.Save(self.filename)
 
     def OnCommitCardBtnButton(self, event):
         # Check if a new card is created or a existing card is edited
