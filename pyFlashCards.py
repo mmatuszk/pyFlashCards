@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 # CVS information
 # $Source: /cvsroot/pyflashcards/pyFlashCards/pyFlashCards.py,v $
-# $Revision: 1.25 $
-# $Date: 2008/12/12 16:07:08 $
+# $Revision: 1.26 $
+# $Date: 2009/02/25 03:03:05 $
 # $Author: marcin201 $
 #-------------------------------------------------------------------------------
 
@@ -60,15 +60,12 @@ ID_FLASH_CARD_FRAME             = wx.NewId()
 
 ID_FILE_NEW                     = wx.NewId()
 ID_FILE_OPEN                    = wx.NewId()
+ID_FILE_RECENT_DOCS             = wx.NewId()
 ID_FILE_CLOSE                   = wx.NewId()
 ID_FILE_IMPORT                  = wx.NewId()
 ID_FILE_EXPORT                  = wx.NewId()
 ID_FILE_SAVE                    = wx.NewId()
 ID_FILE_SAVE_AS                 = wx.NewId()
-ID_FILE_HIST_1                  = wx.NewId()
-ID_FILE_HIST_2                  = wx.NewId()
-ID_FILE_HIST_3                  = wx.NewId()
-ID_FILE_HIST_4                  = wx.NewId()
 ID_FILE_EXIT                    = wx.NewId()
 
 ID_CARDS_CARD_MANAGER           = wx.NewId()
@@ -174,6 +171,7 @@ class FlashCardFrame(wx.Frame):
 
         self.CreateStatusBar()
         self.AddMenu()
+        self.LoadFileHistory()
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -261,6 +259,17 @@ class FlashCardFrame(wx.Frame):
             self.Config.set('directories', 'image_dir', user.home)
             self.Config.set('directories', 'import_dir', user.home)
             self.Config.set('directories', 'export_dir', user.home)
+
+        # File History
+        if self.Config.has_section('file_history'):
+            try:
+                self.Config.get('file_history', 'files')
+            except:
+                self.Config.set('file_history', 'files', '')
+        else:
+            self.Config.add_section('file_history')
+            self.Config.set('file_history', 'files', '')
+
         # Card browser
         if self.Config.has_section('card_browser'):
             try:
@@ -290,6 +299,7 @@ class FlashCardFrame(wx.Frame):
             self.Config.add_section('card_manager')
             self.Config.set('card_manager', 'width', `DefaultWinWidth`)
             self.Config.set('card_manager', 'height', `DefaultWinHeight`)
+
 
     def WriteConfig(self):
         f = open(GetConfigFileName(), 'w')
@@ -348,12 +358,14 @@ class FlashCardFrame(wx.Frame):
         AddMenuItemWithImage(FileMenu, ID_FILE_OPEN, '&Open\tCtrl+O',
                              'Open an existing card file',
                               open_bmp)
+        RecentDocsMenu = wx.Menu()
+        FileMenu.AppendMenu(ID_FILE_RECENT_DOCS, "Recent Documents", RecentDocsMenu)
         FileMenu.Append(ID_FILE_CLOSE, 'Close', 'Close the card file\tCtrl+W')
         FileMenu.Enable(ID_FILE_CLOSE, False)
         FileMenu.AppendSeparator()
-        FileMenu.Append(ID_FILE_IMPORT, 'Import', 'Import a card file')
+        FileMenu.Append(ID_FILE_IMPORT, 'Import\tCtrl+I', 'Import a card file')
         FileMenu.Enable(ID_FILE_IMPORT, False)
-        FileMenu.Append(ID_FILE_EXPORT, 'Export', 'Export a card file')
+        FileMenu.Append(ID_FILE_EXPORT, 'Export\tCtrl+X', 'Export a card file')
         FileMenu.Enable(ID_FILE_EXPORT, False)
         FileMenu.AppendSeparator()
         save_bmp =  wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_MENU)
@@ -369,10 +381,16 @@ class FlashCardFrame(wx.Frame):
         FileMenu.Append(ID_FILE_EXIT, 'E&xit', 'Exit program')
         FileMenu.Enable(ID_FILE_SAVE_AS, False)
 
+
+        # Add File History
+        self.FileHistory = wx.FileHistory()
+        self.FileHistory.UseMenu(RecentDocsMenu)
+
         self.Bind(wx.EVT_MENU, self.OnNew, id=ID_FILE_NEW)
         self.Bind(wx.EVT_MENU, self.OnSave, id=ID_FILE_SAVE)
         self.Bind(wx.EVT_MENU, self.OnSaveAs, id=ID_FILE_SAVE_AS)
         self.Bind(wx.EVT_MENU, self.OnOpen, id=ID_FILE_OPEN)
+        self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
         self.Bind(wx.EVT_MENU, self.OnClose, id=ID_FILE_CLOSE)
         self.Bind(wx.EVT_MENU, self.OnImportWizard, id=ID_FILE_IMPORT)
         self.Bind(wx.EVT_MENU, self.OnExportWizard, id=ID_FILE_EXPORT)
@@ -494,8 +512,7 @@ class FlashCardFrame(wx.Frame):
         self.FileMenu.Enable(ID_FILE_SAVE, False)
         self.FileMenu.Enable(ID_FILE_SAVE_AS, False)
         self.FileMenu.Enable(ID_FILE_IMPORT, False)
-        self.FileMenu.Enable(ID_FILE_EXPORT, False)
-
+        self.FileMenu.Enable(ID_FILE_EXPORT, False) 
         self.CardsMenu.Enable(ID_CARDS_CARD_MANAGER, False)
         self.CardsMenu.Enable(ID_CARDS_CARD_BROWSER, False)
         self.CardsMenu.Enable(ID_CARDS_EDIT_TEST_CARD, False)
@@ -588,6 +605,32 @@ class FlashCardFrame(wx.Frame):
 
         dlg.Destroy()
 
+    def AddFileToHistory(self):
+        if self.filename != '':
+            self.FileHistory.AddFileToHistory(self.filename)
+
+    def SaveFileHistory(self):
+        files = ''
+        for i in range(self.FileHistory.GetCount()):
+            if i == 0:
+                files = self.FileHistory.GetHistoryFile(i)
+            else:
+                files += ','
+                files += self.FileHistory.GetHistoryFile(i)
+
+        self.Config.set('file_history', 'files', files)
+
+    def LoadFileHistory(self):
+        try:
+            files = self.Config.get('file_history', 'files')
+            if files != '':
+                files = files.split(',')
+                files.reverse()
+                for f in files:
+                    self.FileHistory.AddFileToHistory(f)
+        except:
+            return
+
     def OnNew(self, event):
         if self.CardSet:
             if self.CardSet.IsSaved():
@@ -598,8 +641,10 @@ class FlashCardFrame(wx.Frame):
                 ans = dlg.ShowModal()
                 if ans == wx.ID_YES:
                     self.Save()
+                    self.AddFileToHistory()
                     self.MakeNewTestSet()
                 elif ans == wx.ID_NO:
+                    self.AddFileToHistory()
                     self.MakeNewTestSet()
                 elif ans == wx.ID_CANCEL:
                     pass
@@ -648,8 +693,9 @@ class FlashCardFrame(wx.Frame):
                 ans = dlg.ShowModal()
                 if ans == wx.ID_YES:
                     self.Save()
+                    self.AddFileToHistory()
                 elif ans == wx.ID_NO:
-                    pass
+                    self.AddFileToHistory()
                 elif ans == wx.ID_CANCEL:
                     dlg.Destroy()
                     return
@@ -664,8 +710,6 @@ class FlashCardFrame(wx.Frame):
                 self.LoadCardSet(filename)
 
         self.GenerateTitle()
-        win = self.FindFocus()
-        print win.GetName()
     
     def Open(self, filename):
         self.filename = filename
@@ -696,8 +740,10 @@ class FlashCardFrame(wx.Frame):
             ans = dlg.ShowModal()
             if ans == wx.ID_YES:
                 self.Save()
+                self.AddFileToHistory()
                 self.CloseCardSet()
             elif ans == wx.ID_NO:
+                self.AddFileToHistory()
                 self.CloseCardSet()
             elif ans == wx.ID_CANCEL:
                 pass
@@ -705,6 +751,35 @@ class FlashCardFrame(wx.Frame):
             dlg.Destroy()
 
         return ans
+
+    def OnFileHistory(self, event):
+        # get the file based on the menu ID
+        fileNum = event.GetId() - wx.ID_FILE1
+        filename = self.FileHistory.GetHistoryFile(fileNum)
+
+        # now open the file
+        if not self.CardSet:
+            self.Open(filename)
+                
+        else:
+            if not self.CardSet.IsSaved():
+                dlg = wx.MessageDialog(self, "Active set not saved.  Do you want to save it.", "Warning",
+                                wx.YES_NO | wx.YES_DEFAULT | wx.CANCEL | wx.ICON_QUESTION)
+                ans = dlg.ShowModal()
+                if ans == wx.ID_YES:
+                    self.Save()
+                    self.AddFileToHistory()
+                elif ans == wx.ID_NO:
+                    self.AddFileToHistory()
+                elif ans == wx.ID_CANCEL:
+                    dlg.Destroy()
+                    return
+
+                dlg.Destroy()
+
+                self.LoadCardSet(filename)
+
+        self.GenerateTitle()
 
     def OnClose(self, event):
         self.SaveAndCloseCardSet()
@@ -781,12 +856,14 @@ class FlashCardFrame(wx.Frame):
         self.Close()
 
     def OnCloseWindow(self, event):
-        self.WriteConfig()
-        self.WriteAutoCorr()
-
         if self.CardSet:
             if self.SaveAndCloseCardSet() == wx.ID_CANCEL:
                 return
+
+        self.SaveFileHistory()
+
+        self.WriteConfig()
+        self.WriteAutoCorr()
 
         event.Skip()
 
@@ -814,7 +891,7 @@ class FlashCardFrame(wx.Frame):
 
         self.Hide()
 
-        dlg = CardManagerDlg(self, self.CardSet, self.Config, self.autocorr, self.help, self.runtimepath)
+        dlg = CardManagerDlg(self, self.CardSet, self.filename, self.Config, self.autocorr, self.help, self.runtimepath)
         dlg.ShowModal()
         self.CardSet, self.Config, self.autocorr = dlg.GetData()
         dlg.Destroy()
@@ -850,7 +927,7 @@ class FlashCardFrame(wx.Frame):
             dlg.ShowModal()
             return
 
-        dlg = CardManagerDlg(self, self.CardSet, self.Config, self.autocorr, self.help, self.runtimepath)
+        dlg = CardManagerDlg(self, self.CardSet, self.filename, self.Config, self.autocorr, self.help, self.runtimepath)
         dlg.SelectCard(self.CardSet.GetTestCard())
         dlg.ShowModal()
         self.CardSet, self.Config, self.autocorr = dlg.GetData()
