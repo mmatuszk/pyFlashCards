@@ -24,24 +24,18 @@
 #   Boston
 #   MA  02110-1301
 #   USA.
-#-------------------------------------------------------------------------------
-# CVS information
-# $Source: /cvsroot/pyflashcards/pyFlashCards/CardBrowserDlg.py,v $
-# $Revision: 1.1 $
-# $Date: 2008/10/04 20:44:27 $
-# $Author: marcin $
-#-------------------------------------------------------------------------------
 
 import wx
 import wx.html as html
+import FlashCard
 
-CHAPTERS_CHOICE_ID  = wx.NewId()
-CARD_LIST_CTRL_ID   = wx.NewId()
+CHAPTERS_CHOICE_ID  = wx.Window.NewControlId()
+CARD_LIST_CTRL_ID   = wx.Window.NewControlId()
 
-FIND_TEXT_ID = wx.NewId()
+FIND_TEXT_ID = wx.Window.NewControlId()
 
-FIND_NEXT_ID = wx.NewId()
-FIND_PREV_ID = wx.NewId()
+FIND_NEXT_ID = wx.Window.NewControlId()
+FIND_PREV_ID = wx.Window.NewControlId()
 
 class CardBrowserDlg(wx.Dialog):
     def __init__(
@@ -66,8 +60,8 @@ class CardBrowserDlg(wx.Dialog):
             h = self.Config.getint('card_browser', 'height')
             size = (w, h)
 
-        print size
-        wx.Dialog.__init__(self, id=ID, name=u'CardBrowserDlg',
+        print(size)
+        wx.Dialog.__init__(self, id=ID, name='CardBrowserDlg',
               parent=parent, size=size, style=style, title=title)
 
         self.CardSet = CardSet
@@ -108,7 +102,8 @@ class CardBrowserDlg(wx.Dialog):
 
 
         hsizer.Add(chapterlabel, 0, wx.ALIGN_CENTER)
-        hsizer.AddSpacer((5,5))
+        #/hsizer.AddSpacer((5,5))
+        hsizer.AddSpacer(5)
         hsizer.Add(self.ChaptersChoice, 1, wx.ALIGN_CENTER | wx.EXPAND)
 
         sizer.Add(hsizer, 0, wx.EXPAND)
@@ -118,9 +113,10 @@ class CardBrowserDlg(wx.Dialog):
 
         splitter = wx.SplitterWindow(self, -1)
         self.FrontDisp = html.HtmlWindow(splitter, -1, 
-                style=wx.SUNKEN_BORDER | wx.HSCROLL)
+                style=wx.BORDER_SUNKEN | wx.HSCROLL)
         self.BackDisp = html.HtmlWindow(splitter, -1, 
-                style=wx.SUNKEN_BORDER | wx.HSCROLL)
+                style=wx.BORDER_SUNKEN | wx.HSCROLL)
+
         
         splitter.SplitHorizontally(self.FrontDisp, self.BackDisp, 200)
         splitter.SetMinimumPaneSize(20)
@@ -151,7 +147,8 @@ class CardBrowserDlg(wx.Dialog):
         next = wx.Button(self, wx.ID_FORWARD)
 
         hsizer.Add(prev, 0)
-        hsizer.AddSpacer((5,5))
+        #hsizer.AddSpacer((5,5))
+        hsizer.AddSpacer((5))
         hsizer.Add(next, 0)
 
         sizer.Add(hsizer, 0, wx.ALIGN_CENTER)
@@ -170,10 +167,11 @@ class CardBrowserDlg(wx.Dialog):
         down_bmp =  wx.ArtProvider.GetBitmap(wx.ART_GO_DOWN, wx.ART_BUTTON)
         findnext = wx.BitmapButton(self, FIND_NEXT_ID,
                 down_bmp)
-        findprev = wx.BitmapButton(self, FIND_NEXT_ID, up_bmp)
+        findprev = wx.BitmapButton(self, FIND_PREV_ID, up_bmp)
 
         hsizer.Add(findlabel, 0, wx.CENTER)
-        hsizer.AddSpacer((5,5))
+        #hsizer.AddSpacer((5,5))
+        hsizer.AddSpacer(5)
         hsizer.Add(self.FindTextCtrl, 0, wx.CENTER)
         hsizer.Add(findnext, 0, wx.CENTER)
         hsizer.Add(findprev, 0, wx.CENTER)
@@ -290,10 +288,11 @@ class CardBrowserDlg(wx.Dialog):
     def OnCloseWindow(self, event):
         if self.Config:
             w, h = self.GetSize()
-            self.Config.set('card_browser', 'width', `w`)
-            self.Config.set('card_browser', 'height', `h`)
+            # Use str() for string conversion in Python 3
+            self.Config.set('card_browser', 'width', str(w))
+            self.Config.set('card_browser', 'height', str(h))
         event.Skip()
-
+        
     def OnKeyDown(self, event):
         keycode = event.GetKeyCode()
 
@@ -342,7 +341,7 @@ class CardBrowserDlg(wx.Dialog):
 
         found = False
         self.searchIndex = self.i + direction
-        while not found and self.searchIndex <> self.i:
+        while not found and self.searchIndex != self.i:
             card = self.cards[self.searchIndex]
             if card.FrontTextFind(str, case) >= 0 or\
                     card.BackTextFind(str, case) >= 0:
@@ -364,8 +363,13 @@ class CardBrowserDlg(wx.Dialog):
             front, back = card.GetBothSides()
             front = front.split('\n')[0]
             back = back.split('\n')[0]
+            
             # Insert cards at the end of the list by getting the index from the
             # number of items in the list
             index = self.CardListCtrl.GetItemCount()
-            self.CardListCtrl.InsertStringItem(index, front)            
-            self.CardListCtrl.SetStringItem(index, 1, back)
+
+            # Insert the front text
+            self.CardListCtrl.InsertItem(index, front)
+
+            # Set the back text in the second column
+            self.CardListCtrl.SetItem(index, 1, back)
