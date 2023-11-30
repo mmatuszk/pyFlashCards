@@ -421,7 +421,7 @@ class CardManagerDlg(wx.Dialog):
         self.AddCards2ListUI(self.CardSet.GetChapterCards(chapters[0]))
 
 
-        self.CardCount.SetValue(`self.CardSet.GetChapterCardCount(chapters[0])`)
+        self.CardCount.SetValue(self.CardSet.GetChapterCardCount(chapters[0]))
 
         # for wxMSW
         self.CardListCtrl.Bind(wx.EVT_COMMAND_RIGHT_CLICK, self.OnRightClick)
@@ -469,7 +469,7 @@ class CardManagerDlg(wx.Dialog):
 
     def InitCardEntry(self):
         f = wx.Font(12, wx.SWISS, wx.NORMAL, wx.NORMAL, False)
-        print 'CardManger: ' + f.GetFaceName()
+        print('CardManager: ' + f.GetFaceName())
         self.FrontEntry.SetFont(f)
         self.BackEntry.SetFont(f)
 
@@ -668,7 +668,8 @@ class CardManagerDlg(wx.Dialog):
 
     def UpdateCardCountUI(self):
         chapter = self.ChaptersChoice.GetStringSelection()
-        self.CardCount.SetValue(`self.CardSet.GetChapterCardCount(chapter)`)
+        card_count = self.CardSet.GetChapterCardCount(chapter)
+        self.CardCount.SetValue(str(card_count))
         
     def CancelCardEdit(self):
         self.ResetCardUI()
@@ -677,9 +678,9 @@ class CardManagerDlg(wx.Dialog):
     # Check if the edited card is modified
     def IsCardModified(self):
         if self.CardEditIndex < 0:
-            if self.FrontEntry.GetValue() <> '':
+            if self.FrontEntry.GetValue() != '':
                 return True
-            if self.BackEntry.GetValue() <> '':
+            if self.BackEntry.GetValue() != '':
                 return True
             if self.FrontImageChanged or self.BackImageChanged:
                 return True
@@ -690,9 +691,9 @@ class CardManagerDlg(wx.Dialog):
             # Retrive the modified card
             card = self.CardSet.GetCard(chapter, index)
 
-            if self.FrontEntry.GetValue() <> card.GetFrontText():
+            if self.FrontEntry.GetValue() != card.GetFrontText():
                 return True
-            if self.BackEntry.GetValue() <> card.GetBackText():
+            if self.BackEntry.GetValue() != card.GetBackText():
                 return True
             if self.FrontImageChanged or self.BackImageChanged:
                 return True
@@ -860,7 +861,7 @@ class CardManagerDlg(wx.Dialog):
         n = self.CardListCtrl.GetFirstSelected()
         if n >= 0:
             self.CardListCtrl.SetItemState(n, 0, wx.LIST_STATE_SELECTED)
-            print "Deselecting item"
+            print("Deselecting item")
         while n >= 0:
             n = self.CardListCtrl.GetNextSelected(n)
             if n >= 0:
@@ -1129,8 +1130,8 @@ class CardManagerDlg(wx.Dialog):
         if ans == wx.ID_YES:
             if self.Config:
                 w, h = self.GetSize()
-                self.Config.set('card_browser', 'width', `w`)
-                self.Config.set('card_browser', 'height', `h`)
+                self.Config.set('card_browser', 'width', str(w))
+                self.Config.set('card_browser', 'height', str(h))
             event.Skip()
 
     def OnFindNext(self, event):
@@ -1160,7 +1161,8 @@ class CardManagerDlg(wx.Dialog):
 def MakeButtonBitmap(filename, bsize, pad=10):
         bw, bh = bsize
         filename = os.path.normpath(filename)
-        print filename
+        print(filename)
+
         image = wx.Image(filename, wx.BITMAP_TYPE_ANY)
         iw, ih = image.GetWidth(), image.GetHeight()
         if iw >= ih:
