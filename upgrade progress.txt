@@ -7,3 +7,4 @@ ChapterManagerDlg.py - updated and tested
 ExportWizard.py - updated and tested
 ImportWizard.py - updated and tested
 MyArtProvider.py - reviewed and seems OK
+TextHtmlCtrl.py - update and tested.  Fixed autocorrection fuction on windows
