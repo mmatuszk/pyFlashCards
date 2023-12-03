@@ -45,150 +45,147 @@ def create(parent):
 ] = [wx.NewId() for _init_ctrls in range(9)]
 
 class LearningManagerDlg(wx.Dialog):
-    def _init_ctrls(self, prnt):
-        # generated method, don't edit
-        wx.Dialog.__init__(self, id=wxID_LEARNINGMANAGERDLG,
-              name=u'LearningManagerDlg', parent=prnt, pos=wx.Point(489, 250),
-              size=wx.Size(592, 471), style=wx.DEFAULT_DIALOG_STYLE,
-              title=u'Learning Manger Dialog')
-        self.SetClientSize(wx.Size(584, 433))
+      def _init_ctrls(self, prnt):
+            # generated method, don't edit
+            wx.Dialog.__init__(self, id=wxID_LEARNINGMANAGERDLG,
+                  name=u'LearningManagerDlg', parent=prnt, pos=wx.Point(489, 250),
+                  size=wx.Size(592, 471), style=wx.DEFAULT_DIALOG_STYLE,
+                  title=u'Learning Manger Dialog')
+            self.SetClientSize(wx.Size(584, 433))
 
-        self.staticText1 = wx.StaticText(id=wxID_LEARNINGMANAGERDLGSTATICTEXT1,
-              label=u'Available chapters', name='staticText1', parent=self,
-              pos=wx.Point(16, 16), size=wx.Size(87, 13), style=0)
+            self.staticText1 = wx.StaticText(id=wxID_LEARNINGMANAGERDLGSTATICTEXT1,
+                  label=u'Available chapters', name='staticText1', parent=self,
+                  pos=wx.Point(16, 16), size=wx.Size(87, 13), style=0)
 
-        self.staticText2 = wx.StaticText(id=wxID_LEARNINGMANAGERDLGSTATICTEXT2,
-              label=u'Selected chapters', name='staticText2', parent=self,
-              pos=wx.Point(336, 16), size=wx.Size(86, 13), style=0)
+            self.staticText2 = wx.StaticText(id=wxID_LEARNINGMANAGERDLGSTATICTEXT2,
+                  label=u'Selected chapters', name='staticText2', parent=self,
+                  pos=wx.Point(336, 16), size=wx.Size(86, 13), style=0)
 
-        bitmap = wx.ArtProvider.GetBitmap(wx.ART_GO_FORWARD, wx.ART_BUTTON, (32, 32))
-        self.AddButton = wx.BitmapButton(bitmap=bitmap,
-              id=wxID_LEARNINGMANAGERDLGADDBUTTON,
-              name=u'AddButton', parent=self, pos=wx.Point(272, 144),
-              size=wx.Size(34, 34), style=wx.BU_AUTODRAW)
-        self.AddButton.Bind(wx.EVT_BUTTON, self.OnAddButtonButton,
-              id=wxID_LEARNINGMANAGERDLGADDBUTTON)
+            bitmap = wx.ArtProvider.GetBitmap(wx.ART_GO_FORWARD, wx.ART_BUTTON, (32, 32))
+            self.AddButton = wx.BitmapButton(bitmap=bitmap,
+                  id=wxID_LEARNINGMANAGERDLGADDBUTTON,
+                  name=u'AddButton', parent=self, pos=wx.Point(272, 144),
+                  size=wx.Size(34, 34), style=wx.BU_AUTODRAW)
+            self.AddButton.Bind(wx.EVT_BUTTON, self.OnAddButtonButton,
+                  id=wxID_LEARNINGMANAGERDLGADDBUTTON)
 
-        bitmap = wx.ArtProvider.GetBitmap(wx.ART_GO_BACK, wx.ART_BUTTON, (32, 32))
-        self.RemoveButton = wx.BitmapButton(bitmap=bitmap,
-              id=wxID_LEARNINGMANAGERDLGREMOVEBUTTON,
-              name=u'RemoveButton', parent=self, pos=wx.Point(272, 192),
-              size=wx.Size(34, 34), style=wx.BU_AUTODRAW)
-        self.RemoveButton.Bind(wx.EVT_BUTTON, self.OnRemoveButtonButton,
-              id=wxID_LEARNINGMANAGERDLGREMOVEBUTTON)
+            bitmap = wx.ArtProvider.GetBitmap(wx.ART_GO_BACK, wx.ART_BUTTON, (32, 32))
+            self.RemoveButton = wx.BitmapButton(bitmap=bitmap,
+                  id=wxID_LEARNINGMANAGERDLGREMOVEBUTTON,
+                  name=u'RemoveButton', parent=self, pos=wx.Point(272, 192),
+                  size=wx.Size(34, 34), style=wx.BU_AUTODRAW)
+            self.RemoveButton.Bind(wx.EVT_BUTTON, self.OnRemoveButtonButton,
+                  id=wxID_LEARNINGMANAGERDLGREMOVEBUTTON)
 
-        self.AvailableChaptersListCtrl = wx.ListCtrl(id=wxID_LEARNINGMANAGERDLGAVAILABLECHAPTERSLISTCTRL,
-              name=u'AvailableChaptersListCtrl', parent=self, pos=wx.Point(16,
-              40), size=wx.Size(230, 350), style=wx.LC_REPORT)
+            self.AvailableChaptersListCtrl = wx.ListCtrl(id=wxID_LEARNINGMANAGERDLGAVAILABLECHAPTERSLISTCTRL,
+                  name=u'AvailableChaptersListCtrl', parent=self, pos=wx.Point(16,
+                  40), size=wx.Size(230, 350), style=wx.LC_REPORT)
 
-        self.SelectedChaptersListCtrl = wx.ListCtrl(id=wxID_LEARNINGMANAGERDLGSELECTEDCHAPTERSLISTCTRL,
-              name=u'SelectedChaptersListCtrl', parent=self, pos=wx.Point(336,
-              40), size=wx.Size(230, 350), style=wx.LC_REPORT)
+            self.SelectedChaptersListCtrl = wx.ListCtrl(id=wxID_LEARNINGMANAGERDLGSELECTEDCHAPTERSLISTCTRL,
+                  name=u'SelectedChaptersListCtrl', parent=self, pos=wx.Point(336,
+                  40), size=wx.Size(230, 350), style=wx.LC_REPORT)
 
-        self.staticText3 = wx.StaticText(id=wxID_LEARNINGMANAGERDLGSTATICTEXT3,
-              label=u'Selected cards', name='staticText3', parent=self,
-              pos=wx.Point(336, 400), size=wx.Size(71, 13), style=0)
+            self.staticText3 = wx.StaticText(id=wxID_LEARNINGMANAGERDLGSTATICTEXT3,
+                  label=u'Selected cards', name='staticText3', parent=self,
+                  pos=wx.Point(336, 400), size=wx.Size(71, 13), style=0)
 
-        self.TestCardsCount = wx.TextCtrl(id=wxID_LEARNINGMANAGERDLGTESTCARDSCOUNT,
-              name=u'TestCardsCount', parent=self, pos=wx.Point(424, 396),
-              size=wx.Size(48, 21), style=wx.TE_READONLY, value=u'')
+            self.TestCardsCount = wx.TextCtrl(id=wxID_LEARNINGMANAGERDLGTESTCARDSCOUNT,
+                  name=u'TestCardsCount', parent=self, pos=wx.Point(424, 396),
+                  size=wx.Size(48, 21), style=wx.TE_READONLY, value=u'')
 
-    def __init__(self, parent, CardSet, help, runtimepath):
-        self.help           = help
-        self.runtimepath    = runtimepath
-        self.CardSet        = CardSet
+      def __init__(self, parent, CardSet, help, runtimepath):
+            self.help           = help
+            self.runtimepath    = runtimepath
+            self.CardSet        = CardSet
 
-        self._init_ctrls(parent)
-
-
-        # Add columns to the chapters list controls
-        ListWidth = self.AvailableChaptersListCtrl.GetSize()[0]
-
-        self.AvailableChaptersListCtrl.InsertColumn(0, 'Chapter',
-                                                    width=ListWidth*0.8-2)
-        self.AvailableChaptersListCtrl.InsertColumn(1, 'Cards',
-                                                    width=ListWidth*0.2-2)
-        ListWidth = self.SelectedChaptersListCtrl.GetSize()[0]
-
-        self.SelectedChaptersListCtrl.InsertColumn(0, 'Chapter',
-                                                    width=ListWidth*0.8-2)
-        self.SelectedChaptersListCtrl.InsertColumn(1, 'Cards',
-                                                    width=ListWidth*0.2-2)
-
-        # Populate available chapaters list control
-        for chapter in self.CardSet.GetAvailableChapters():
-            count = self.CardSet.GetChapterCardCount(chapter)
-            # Insert cards at the end of the list by getting the index from the
-            # number of items in the list
-            index = self.AvailableChaptersListCtrl.GetItemCount()
-            self.AvailableChaptersListCtrl.InsertStringItem(index, chapter)
-            self.AvailableChaptersListCtrl.SetStringItem(index, 1, `count`)
-
-        # Populate available chapaters list control
-        for chapter in self.CardSet.GetSelectedChapters():
-            count = self.CardSet.GetChapterCardCount(chapter)
-            # Insert cards at the end of the list by getting the index from the
-            # number of items in the list
-            index = self.SelectedChaptersListCtrl.GetItemCount()
-            self.SelectedChaptersListCtrl.InsertStringItem(index, chapter)
-            self.SelectedChaptersListCtrl.SetStringItem(index, 1, `count`)
-
-        # Set test cards count
-        self.TestCardsCount.SetValue(`self.CardSet.GetTestCardsCount()`)
+            self._init_ctrls(parent)
 
 
-    def GetCardSet(self):
-        return self.CardSet
+            # Add columns to the chapters list controls
+            ListWidth = self.AvailableChaptersListCtrl.GetSize()[0]
 
-    def OnAddButtonButton(self, event):
-        index = self.AvailableChaptersListCtrl.GetFirstSelected()
+            self.AvailableChaptersListCtrl.InsertColumn(0, 'Chapter',
+                                                      width=ListWidth*0.8-2)
+            self.AvailableChaptersListCtrl.InsertColumn(1, 'Cards',
+                                                      width=ListWidth*0.2-2)
+            ListWidth = self.SelectedChaptersListCtrl.GetSize()[0]
 
-        while index != -1:
-            # Save chapter information
-            chapter = self.CardSet.GetAvailableChapters()[index]
+            self.SelectedChaptersListCtrl.InsertColumn(0, 'Chapter',
+                                                      width=ListWidth*0.8-2)
+            self.SelectedChaptersListCtrl.InsertColumn(1, 'Cards',
+                                                      width=ListWidth*0.2-2)
 
-            # Remove the chapter from ListCtrl
-            self.AvailableChaptersListCtrl.DeleteItem(index)
+            # Populate available chapters list control
+            for chapter in self.CardSet.GetAvailableChapters():
+                  count = self.CardSet.GetChapterCardCount(chapter)
+                  index = self.AvailableChaptersListCtrl.GetItemCount()
+                  self.AvailableChaptersListCtrl.InsertItem(index, chapter)
+                  self.AvailableChaptersListCtrl.SetItem(index, 1, str(count))
 
-            # Move the chapter from availalbe list to selected list and add the
-            # chapter chards to the learning set
-            self.CardSet.SelectChapter(index)
+            # Populate selected chapters list control
+            for chapter in self.CardSet.GetSelectedChapters():
+                  count = self.CardSet.GetChapterCardCount(chapter)
+                  index = self.SelectedChaptersListCtrl.GetItemCount()
+                  self.SelectedChaptersListCtrl.InsertItem(index, chapter)
+                  self.SelectedChaptersListCtrl.SetItem(index, 1, str(count))
 
-            # Add the chapter to the selected chapters ListCtrl
-            count = self.CardSet.GetChapterCardCount(chapter)
-            i = self.SelectedChaptersListCtrl.GetItemCount()
-            self.SelectedChaptersListCtrl.InsertStringItem(i, chapter)
-            self.SelectedChaptersListCtrl.SetStringItem(i, 1, `count`)
-
-            # Next selected item
-            index = self.AvailableChaptersListCtrl.GetNextSelected(index-1)
+            # Set test cards count
+            self.TestCardsCount.SetValue(str(self.CardSet.GetTestCardsCount()))
 
 
-        self.TestCardsCount.SetValue(`self.CardSet.GetTestCardsCount()`)
+      def GetCardSet(self):
+            return self.CardSet
 
-    def OnRemoveButtonButton(self, event):
-        print "Removing chapter"
-        index = self.SelectedChaptersListCtrl.GetFirstSelected()
+      def OnAddButtonButton(self, event):
+            index = self.AvailableChaptersListCtrl.GetFirstSelected()
 
-        while index != -1:
-            # Save chapter information
-            chapter = self.CardSet.GetSelectedChapters()[index]
+            while index != -1:
+                  # Save chapter information
+                  chapter = self.CardSet.GetAvailableChapters()[index]
 
-            # Remove the chapter from ListCtrl
-            self.SelectedChaptersListCtrl.DeleteItem(index)
+                  # Remove the chapter from ListCtrl
+                  self.AvailableChaptersListCtrl.DeleteItem(index)
 
-            # Move the chapter from availalbe list to selected list and add the
-            # chapter chards to the learning set
-            insert = self.CardSet.DeselectChapter(index)
+                  # Move the chapter from availalbe list to selected list and add the
+                  # chapter chards to the learning set
+                  self.CardSet.SelectChapter(index)
 
-            # Add the chapter to the selected chapters ListCtrl
-            count = self.CardSet.GetChapterCardCount(chapter)
-            print 'Count: ' + `count`
-            print 'Insert: ' + `insert`
-            self.AvailableChaptersListCtrl.InsertStringItem(insert, chapter)
-            self.AvailableChaptersListCtrl.SetStringItem(insert, 1, `count`)
+                  # Add the chapter to the selected chapters ListCtrl
+                  count = self.CardSet.GetChapterCardCount(chapter)
+                  i = self.SelectedChaptersListCtrl.GetItemCount()
+                  self.SelectedChaptersListCtrl.InsertItem(i, chapter)
+                  self.SelectedChaptersListCtrl.SetItem(i, 1, str(count))
 
-            # Next selected item
-            index = self.SelectedChaptersListCtrl.GetNextSelected(index-1)
+                  # Next selected item
+                  index = self.AvailableChaptersListCtrl.GetNextSelected(index-1)
 
-        self.TestCardsCount.SetValue(`self.CardSet.GetTestCardsCount()`)
+
+            self.TestCardsCount.SetValue(str(self.CardSet.GetTestCardsCount()))
+
+      def OnRemoveButtonButton(self, event):
+            print("Removing chapter")
+            index = self.SelectedChaptersListCtrl.GetFirstSelected()
+
+            while index != -1:
+                  # Save chapter information
+                  chapter = self.CardSet.GetSelectedChapters()[index]
+
+                  # Remove the chapter from ListCtrl
+                  self.SelectedChaptersListCtrl.DeleteItem(index)
+
+                  # Move the chapter from available list to selected list and add the
+                  # chapter cards to the learning set
+                  insert = self.CardSet.DeselectChapter(index)
+
+                  # Add the chapter to the available chapters ListCtrl
+                  count = self.CardSet.GetChapterCardCount(chapter)
+                  print('Count: ' + str(count))
+                  print('Insert: ' + str(insert))
+                  insert_index = self.AvailableChaptersListCtrl.InsertItem(insert, chapter)
+                  self.AvailableChaptersListCtrl.SetItem(insert_index, 1, str(count))
+
+                  # Next selected item
+                  index = self.SelectedChaptersListCtrl.GetNextSelected(index)
+
+            self.TestCardsCount.SetValue(str(self.CardSet.GetTestCardsCount()))
+

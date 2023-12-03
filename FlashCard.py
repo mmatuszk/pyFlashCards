@@ -22,18 +22,13 @@
 #   MA  02110-1301
 #   USA.
 #-------------------------------------------------------------------------------
-# CVS information
-# $Source: /cvsroot/pyflashcards/pyFlashCards/FlashCard.py,v $
-# $Revision: 1.20 $
-# $Date: 2009/02/25 03:02:02 $
-# $Author: marcin201 $
-#-------------------------------------------------------------------------------
+
 import fileinput, codecs, os, copy, sys, shutil, tempfile
+import shutil
 import XMLDoc
 import htmlDoc
 import HTMLStrippingParser
 import random
-import pathutils
 
 debug_save = False
 
@@ -153,10 +148,10 @@ class FlashCard:
         self.BackImage = image
 
     def GetFrontImage(self):
-        return pathutils.nativepath(self.FrontImage)
+        return os.path.normpath(self.FrontImage)
 
     def GetBackImage(self):
-        return pathutils.nativepath(self.BackImage)
+        return os.path.normpath(self.BackImage)
 
     def GetChapter(self):
         return self.Chapter
@@ -171,13 +166,13 @@ class FlashCard:
         return self.FrontText
 
     def GetFrontFirstLineNoHtml(self):
-        return HTMLStrippingParser.strip(self.FrontText.split('\n')[0])
+        return HTMLStrippingParser.strip_tags(self.FrontText.split('\n')[0])
 
     def GetBackText(self):
         return self.BackText
 
     def GetBackFirstLineNoHtml(self):
-        return HTMLStrippingParser.strip(self.BackText.split('\n')[0])
+        return HTMLStrippingParser.strip_tags(self.BackText.split('\n')[0])
 
     def ReplaceTags(self, str):
         for sTag, eTag in replaceTagList:
@@ -345,7 +340,7 @@ class FlashCardBox:
     #--------------------------------------------------------------------------
     def AddCards(self, cards):
         count = 0
-        for c in card:
+        for c in cards:
             if self.AddCard():
                 count += 1
             else:
@@ -543,21 +538,22 @@ class TestSet:
             else:
                 boxIndex = card.GetBox()
                 if boxIndex >= 0:
-                    # Check if the card is in a box.  Every card should be in a box when this function is called, so
+                    # Check if the card is in a box. Every card should be in a box when this function is called, so
                     # this is just to handle a bug somewhere else gracefully.
                     box = self.box[boxIndex]
+                    BoxCard = None  # Initialize BoxCard to None before the loop
                     for BoxCard, i in zip(box.GetCards(), range(box.GetCardCount())):
                         if BoxCard == card:
                             break
                     
-                    if BoxCard:
-                        if BoxCard == card:
-                            box.RemoveCard(i)
+                    # After the loop, check if BoxCard was assigned and matches card
+                    if BoxCard == card:
+                        box.RemoveCard(i)
                 else:
-                    print "TestSet.RemoveCards Warning"
-                    print "Card not in a box.  It should be"
-                    print "Front", card.GetFrontFirstLineNoHtml()
-                    print "Back", card.GetBackFirstLineNoHtml()
+                    print("TestSet.RemoveCards Warning")
+                    print("Card not in a box. It should be")
+                    print("Front", card.GetFrontFirstLineNoHtml())
+                    print("Back", card.GetBackFirstLineNoHtml())
 
     # Function removes a cards from study boxes
     def RemoveCard(self, card):
@@ -770,15 +766,17 @@ class FlashCardSet:
         os.mkdir(self.picdir)
 
     def RemoveTmpDir(self):
-        # Check if temp directory exisits
-        if os.path.exists(self.tmpdir):
-            for root, dirs, files in os.walk(self.tmpdir, topdown=False):
-                for name in files:
-                    os.remove(os.path.join(root, name))
-                for name in dirs:
-                    os.rmdir(os.path.join(root, name))
+        try:
+            # Change the current working directory if it's the temporary directory
+            if os.getcwd() == self.tmpdir:
+                os.chdir('..')  # Move up one directory
 
-            os.rmdir(self.tmpdir)
+            # Use shutil.rmtree to remove the directory and its contents
+            shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+        except Exception as e:
+            print(f"Error removing temporary directory: {e}")
+
 
     def CleanFiles(self):
         shutil.rmtree(self.filedir, True)
@@ -1061,7 +1059,7 @@ class FlashCardSet:
         found = False
         searchIndex = index + direction
 
-        while not found and searchIndex <> index:
+        while not found and searchIndex != index:
             card = self.GetCard(chapter, searchIndex)
             if card.FrontTextFind(str, case) >= 0 or card.BackTextFind(str, case) >= 0:
                 found = True
@@ -1101,7 +1099,7 @@ class FlashCardSet:
         found = False
         searchIndex = index + direction
 
-        while not found and searchIndex <> index:
+        while not found and searchIndex != index:
             card = self.GetCard(chapter, searchIndex)
             if card.FrontTextFind(str, case) >= 0 or card.BackTextFind(str, case) >= 0:
                 found = True
@@ -1316,26 +1314,31 @@ class FlashCardSet:
 
         # Make the zip command
         cmd = 'tar -cjf "%s" "%s"' % (filename, self.filedir)
-        print cmd
+        print(cmd)
         os.system(cmd)
 
         self.saved = True
 
-    def Load(self, filename):    
-        print "Load: ", filename
+    def Load(self, filename):
+        # In Python 3, print is a function
+        print("Load: ", filename)
+        
         # First clean old files
         self.CleanFiles()
+        
         # Recreate all directories
         self.MakeDirs()
 
-        cmd = 'tar -xjf "%s"' % filename
-        print cmd
+        # Use format() for string formatting in Python 3
+        cmd = 'tar -xjf "{}"'.format(filename)
+        print(cmd)
+        
         os.system(cmd)
 
         self.LoadData(self.datafile)
 
         self.saved = True
-
+        
     def SaveData(self, filename):
         doc = XMLDoc.XMLDocument()
 
@@ -1373,70 +1376,58 @@ class FlashCardSet:
         boxesNode = root.add('box_list')
         for box in self.TestSet.GetBoxes():
             node = boxesNode.add('box')
-            node.add('max_items').addText(`box.GetCapacity()`)
+            node.add('max_items').addText(str(box.GetCapacity()))
             for card in box.GetCards():
                 node1 = node.add('card')
                 node1.add('chapter').addText(card.GetChapter())
                 # Find the index of the card in the card list
                 chapter = card.GetChapter()
+                index = -1  # default to -1
                 for i in range(self.GetChapterCardCount(chapter)):
                     if card == self.GetCard(chapter, i):
+                        index = i
                         break
 
-                if card == self.GetCard(chapter, i):
-                    node1.add('index').addText(`i`)
-                else:
-                    node1.add('index').addText(`-1`)
+                node1.add('index').addText(str(index))
 
         # The test card
         learningCardNode = root.add('test_card')
         card = self.TestSet.GetTestCard()
         boxIndex = self.TestSet.GetTestCardBox()
-        if card == None:
+        if card is None:
             learningCardNode.add('chapter').addText('None')
             learningCardNode.add('card_index').addText('-1')
             learningCardNode.add('box_index').addText('-1')
         else:
             chapter = card.GetChapter()
             learningCardNode.add('chapter').addText(chapter)
-
-            for i in range(self.GetChapterCardCount(chapter)):
-                if card == self.GetCard(chapter, i):
-                    break
-
-            if card == self.GetCard(chapter, i):
-                learningCardNode.add('card_index').addText(`i`)
-                learningCardNode.add('box_index').addText(`boxIndex`)
-            else:
-                learningCardNode.add('card_index').addText(`-1`)
-                learningCardNode.add('box_index').addText(`boxIndex`)
+            card_index = next((i for i, c in enumerate(self.Cards[chapter]) if c == card), -1)
+            learningCardNode.add('card_index').addText(str(card_index))
+            learningCardNode.add('box_index').addText(str(boxIndex))
 
         # Add next image index
         next_image = root.add('next_image')
-        next_image.addText(`self.NextImage`)
+        next_image.addText(str(self.NextImage))
 
-        # Front front information
+        # Front font information
         FontNode = root.add('front_font')
         if self.FrontFontFace:
             FontNode.add('face').addText(self.FrontFontFace)
-        FontNode.add('size').addText(`self.FrontFontSize`)
+        FontNode.add('size').addText(str(self.FrontFontSize))
 
-        # Back front information
+        # Back font information
         FontNode = root.add('back_font')
         if self.BackFontFace:
             FontNode.add('face').addText(self.BackFontFace)
-        FontNode.add('size').addText(`self.BackFontSize`)
+        FontNode.add('size').addText(str(self.BackFontSize))
 
         # Write the document to file
-        f = codecs.open(filename, 'w', 'utf_8')
-        doc.writexml(f)
-        f.close()
+        with codecs.open(filename, 'w', 'utf-8') as f:
+            doc.writexml(f)
 
         if debug_save:
-            f = codecs.open('debug.xml', 'w', 'utf_8')
-            doc.writexml(f, newl='\n')
-            f.close()
-
+            with codecs.open('debug.xml', 'w', 'utf-8') as f:
+                doc.writexml(f, newl='\n')
 
     def LoadData(self, filename):
         doc = XMLDoc.XMLDocument()
@@ -1564,7 +1555,7 @@ class FlashCardSet:
         return self.ExportMap[type](filename, chapter)
                         
     def ImportCards(self, filename, chapter):
-        print filename
+        print(filename)
         question = True
         FrontText = ''
         BackText = ''
@@ -1918,10 +1909,10 @@ class FlashCardSet:
 
             index += 1
 
-	f.write('</FlashCards>')
-	f.close()
+        f.write('</FlashCards>')
+        f.close()
 
-	return index
+        return index
 
 
 #        doc = XMLDoc.XMLDocument()
@@ -1950,15 +1941,17 @@ class FlashCardSet:
     def GenerateTestData(self):    
         self.ClearAllData()
 
-        for n in range(1,16):
-            chapter = 'Chapter %d' % n
+        for n in range(1, 16):
+            chapter = 'Chapter {}'.format(n)
             self.AddChapter(chapter)
-            front = 'Chapter %d: front' % n
-            back = 'Chapter %d: back' % n
-            cards = [FlashCard(front + `d`, back + `d`) for d in range(10+n)]
+            front = 'Chapter {}: front'.format(n)
+            back = 'Chapter {}: back'.format(n)
+            # Use list comprehension with format method for string formatting
+            cards = [FlashCard(front + '{}'.format(d), back + '{}'.format(d)) for d in range(10 + n)]
             self.AddCards(chapter, cards)
 
-        self.Cards['Chapter 1'][0].SetFrontText(u'\u6211')
+        # For Unicode text, just use the string directly in Python 3
+        self.Cards['Chapter 1'][0].SetFrontText('我')
 
 
 if __name__ == '__main__':
@@ -1969,3 +1962,4 @@ if __name__ == '__main__':
     set.SelectChapter(0)
     set.Save('test.xml')
     set.Load('test.xml')
+    set.Close()

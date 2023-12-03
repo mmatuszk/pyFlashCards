@@ -22,12 +22,7 @@
 #   MA  02110-1301
 #   USA.
 #-------------------------------------------------------------------------------
-# CVS information
-# $Source: /cvsroot/pyflashcards/pyFlashCards/AutoCorr.py,v $
-# $Revision: 1.4 $
-# $Date: 2008/11/04 03:19:11 $
-# $Author: marcin201 $
-#-------------------------------------------------------------------------------
+
 import codecs
 import XMLDoc
 
@@ -121,56 +116,51 @@ class AutoCorr:
 
         # Add enable
         enableItem = root.add('enable')
-        if self.EnableState:
-            enableItem.addText('True')
-        else:
-            enableItem.addText('False')
+        enableItem.addText('True' if self.EnableState else 'False')
 
         # Add item list
-        for r,w in self.ReplaceWithList:
+        for r, w in self.ReplaceWithList:
             item = root.add('item')
             item.add('replace').addText(r)
             item.add('with').addText(w)
 
         # Write the document to file
-        f = codecs.open(filename, 'w', 'utf_8')
-        doc.writexml(f)
-        f.close()
+        with codecs.open(filename, 'w', 'utf-8') as f:
+            doc.writexml(f)
 
         if debug_save:
-            f = codecs.open('debug.xml', 'w', 'utf_8')
-            doc.writexml(f, newl='\n')
-            f.close()
+            with codecs.open('debug.xml', 'w', 'utf-8') as f:
+                doc.writexml(f, newl='\n')
 
     def Load(self, filename):
-        doc = XMLDoc.XMLDocument()
-        doc.parse(filename)
+        from xml.etree import ElementTree as ET
 
-        root = doc.getAll('data')
+        try:
+            tree = ET.parse(filename)
+            root = tree.getroot()
 
-        if root:
-            for enableItem in root[0].getAll('enable'):
-                str = enableItem.getText()
-                if str == 'True':
-                    self.EnableState = True
-                else:
-                    self.EnableState = False
+            enableItem = root.find('enable')
+            if enableItem is not None:
+                self.EnableState = (enableItem.text == 'True')
 
-            # Erase all data
-            self.ReplaceWithList = []
+            # Clear existing data
+            self.ReplaceWithList.clear()
 
-            # Cards
-            for item in root[0].getAll('item'):
-                for replaceItem in item.getAll('replace'):
-                    replaceStr = replaceItem.getText()
-                for withItem in item.getAll('with'):
-                    withStr = withItem.getText()
+            for item in root.findall('item'):
+                replaceItem = item.find('replace')
+                withItem = item.find('with')
 
-                    self.ReplaceWithList.append((replaceStr, withStr))
+                if replaceItem is not None and withItem is not None:
+                    self.ReplaceWithList.append((replaceItem.text, withItem.text))
 
-        self.ReplaceWithList.sort()
+            self.ReplaceWithList.sort()
+
+        except Exception as e:
+            print("Error loading XML file:", e)
+
 
 
     def PrintList(self):
-        for f,r in self.ReplaceWithList:
-            print f, r
+        for f, r in self.ReplaceWithList:
+            print(f, r)
+

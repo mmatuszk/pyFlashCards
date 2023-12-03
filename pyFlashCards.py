@@ -31,14 +31,14 @@
 #-------------------------------------------------------------------------------
 
 import wx
-import os, os.path, user
+import os, os.path
 import types
-import ConfigParser
+import configparser
 import sys
 import webbrowser
 
 import wx.html as html
-import wx.wizard as wiz
+import wx.adv # wx.adv module contains the Wizard class
 import MyArtProvider
 
 
@@ -212,99 +212,46 @@ class FlashCardFrame(wx.Frame):
         self.EnableDataMenu()
 
     def LoadConfig(self):
-        self.Config = ConfigParser.SafeConfigParser()
+        self.Config = configparser.ConfigParser()
 
         self.Config.read(GetConfigFileName())
+
         # Window size
-        if self.Config.has_section('window_size'):
-            try:
-                self.Config.getboolean('window_size', 'max')
-            except:
-                self.Config.set('window_size', 'max', 'false')
-            try:
-                self.Config.getint('window_size', 'width')
-            except:
-                self.Config.set('window_size', 'width', `DefaultWinWidth`)
-            try:
-                self.Config.getint('window_size', 'height')
-            except:
-                self.Config.set('window_size', 'height', `DefaultWinHeight`)
-        else:
+        if not self.Config.has_section('window_size'):
             self.Config.add_section('window_size')
-            self.Config.set('window_size', 'max', 'false')
-            self.Config.set('window_size', 'width', `DefaultWinWidth`)
-            self.Config.set('window_size', 'height', `DefaultWinHeight`)
+        self.Config.set('window_size', 'max', self.Config.get('window_size', 'max', fallback='false'))
+        self.Config.set('window_size', 'width', str(self.Config.getint('window_size', 'width', fallback=DefaultWinWidth)))
+        self.Config.set('window_size', 'height', str(self.Config.getint('window_size', 'height', fallback=DefaultWinHeight)))
 
         # Directories
-        if self.Config.has_section('directories'):
-            try:
-                self.Config.get('directories', 'card_dir')
-            except:
-                self.Config.set('directories', 'card_dir', user.home)
-            try:
-                self.Config.get('directories', 'image_dir')
-            except:
-                self.Config.set('directories', 'image_dir', user.home)
-            try:
-                self.Config.get('directories', 'import_dir')
-            except:
-                self.Config.set('directories', 'import_dir', user.home)
-            try:
-                self.Config.get('directories', 'export_dir')
-            except:
-                self.Config.set('directories', 'export_dir', user.home)
-        else:
+        home_directory = os.path.expanduser('~')
+        if not self.Config.has_section('directories'):
             self.Config.add_section('directories')
-            self.Config.set('directories', 'card_dir', user.home)
-            self.Config.set('directories', 'image_dir', user.home)
-            self.Config.set('directories', 'import_dir', user.home)
-            self.Config.set('directories', 'export_dir', user.home)
+        self.Config.set('directories', 'card_dir', self.Config.get('directories', 'card_dir', fallback=home_directory))
+        self.Config.set('directories', 'image_dir', self.Config.get('directories', 'image_dir', fallback=home_directory))
+        self.Config.set('directories', 'import_dir', self.Config.get('directories', 'import_dir', fallback=home_directory))
+        self.Config.set('directories', 'export_dir', self.Config.get('directories', 'export_dir', fallback=home_directory))
 
         # File History
-        if self.Config.has_section('file_history'):
-            try:
-                self.Config.get('file_history', 'files')
-            except:
-                self.Config.set('file_history', 'files', '')
-        else:
+        if not self.Config.has_section('file_history'):
             self.Config.add_section('file_history')
-            self.Config.set('file_history', 'files', '')
+        self.Config.set('file_history', 'files', self.Config.get('file_history', 'files', fallback=''))
 
         # Card browser
-        if self.Config.has_section('card_browser'):
-            try:
-                self.Config.getint('card_browser', 'width')
-            except:
-                self.Config.set('card_browser', 'width', `DefaultWinWidth`)
-            try:
-                self.Config.getint('card_browser', 'height')
-            except:
-                self.Config.set('card_browser', 'height', `DefaultWinHeight`)
-        else:
+        if not self.Config.has_section('card_browser'):
             self.Config.add_section('card_browser')
-            self.Config.set('card_browser', 'width', `DefaultWinWidth`)
-            self.Config.set('card_browser', 'height', `DefaultWinHeight`)
+        self.Config.set('card_browser', 'width', str(self.Config.getint('card_browser', 'width', fallback=DefaultWinWidth)))
+        self.Config.set('card_browser', 'height', str(self.Config.getint('card_browser', 'height', fallback=DefaultWinHeight)))
 
-        # Card browser
-        if self.Config.has_section('card_manager'):
-            try:
-                self.Config.getint('card_manager', 'width')
-            except:
-                self.Config.set('card_manager', 'width', `DefaultWinWidth`)
-            try:
-                self.Config.getint('card_manager', 'height')
-            except:
-                self.Config.set('card_manager', 'height', `DefaultWinHeight`)
-        else:
+        # Card manager
+        if not self.Config.has_section('card_manager'):
             self.Config.add_section('card_manager')
-            self.Config.set('card_manager', 'width', `DefaultWinWidth`)
-            self.Config.set('card_manager', 'height', `DefaultWinHeight`)
-
+        self.Config.set('card_manager', 'width', str(self.Config.getint('card_manager', 'width', fallback=DefaultWinWidth)))
+        self.Config.set('card_manager', 'height', str(self.Config.getint('card_manager', 'height', fallback=DefaultWinHeight)))
 
     def WriteConfig(self):
-        f = open(GetConfigFileName(), 'w')
-        self.Config.write(f)
-        f.close()
+        with open(GetConfigFileName(), 'w') as configfile:
+            self.Config.write(configfile)
 
     def LoadAutoCorr(self):
         # create an empty AutoCorr object
@@ -317,7 +264,8 @@ class FlashCardFrame(wx.Frame):
             self.autocorr.Load(filename)
             return
         else:
-            print "Warning: user autocorrect file does not exist"
+            print("Warning: user autocorrect file does not exist")
+
 
         # If the user file does not exist, try the application file
         filename = os.path.join(self.runtimepath, 'autocorr', AutoCorrFileName)
@@ -325,7 +273,8 @@ class FlashCardFrame(wx.Frame):
             self.autocorr.Load(filename)
             return
         else:
-            print "Warning: application autocorrect file does not exist"
+            print("Warning: application autocorrect file does not exist")
+
 
     def WriteAutoCorr(self):
         filename = GetAutoCorrFileName()
@@ -542,7 +491,7 @@ class FlashCardFrame(wx.Frame):
                     filename = root+'.%s' % defext
 
 
-                print 'Save: ', filename
+                print('Save: ', filename)
 
                 if os.path.exists(filename):
                     msg = wx.MessageDialog(self, "File already exists. Are you sure you want to overwrite it?", "Warning",
@@ -559,7 +508,7 @@ class FlashCardFrame(wx.Frame):
                     elif ans == wx.ID_CANCEL:
                         pass
                     else:
-                        print "Invalid ID"
+                        print("Invalid ID")
 
                     msg.Destroy()
                 else:
@@ -594,7 +543,7 @@ class FlashCardFrame(wx.Frame):
                 elif ans == wx.ID_CANCEL:
                     pass
                 else:
-                    print "Invalid ID"
+                    print("Invalid ID")
 
                 msg.Destroy()
             else:
@@ -794,17 +743,17 @@ class FlashCardFrame(wx.Frame):
             dlg = wx.MessageDialog(self, "Add some chapters first", "Error", wx.OK | wx.ICON_ERROR)
             dlg.CenterOnParent(wx.BOTH)
             dlg.ShowModal()
+            dlg.Destroy()
             return
 
-        #bitmap = wx.Image('icons/wizard.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         iconfile = os.path.join(self.runtimepath, 'icons/pyFlashCards2-import.png')
-        bitmap = wx.Image(iconfile, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
-        wizard = wiz.Wizard(self, -1, "Import Wizard", bitmap)
+        bitmap = wx.Bitmap(iconfile, wx.BITMAP_TYPE_PNG)
+        wizard = wx.adv.Wizard(self, -1, "Import Wizard", bitmap)
         page1 = iw.ImportTypePage(wizard, FlashCard.ImportTypeList)
         page2 = iw.FilePage(wizard, self.Config.get('directories', 'import_dir'), FlashCard.ImportWildcard)
         page3 = iw.ChapterPage(wizard, self.CardSet.GetChapters())
-        wiz.WizardPageSimple_Chain(page1, page2)
-        wiz.WizardPageSimple_Chain(page2, page3)
+        wx.adv.WizardPageSimple.Chain(page1, page2)
+        wx.adv.WizardPageSimple.Chain(page2, page3)
 
         if wizard.RunWizard(page1):
             ImportType = page1.GetData()
@@ -812,9 +761,10 @@ class FlashCardFrame(wx.Frame):
             ImportChapter = page3.GetData()
             if os.path.exists(ImportFile):
                 self.Config.set('directories', 'import_dir', os.path.dirname(ImportFile))
-                n = self.CardSet.Import(ImportType, ImportFile.encode('utf_8'), ImportChapter)
-                dlg = wx.MessageDialog(self, "%d cads imported" % n, "Import result", wx.OK | wx.ICON_INFORMATION)
+                n = self.CardSet.Import(ImportType, ImportFile.encode('utf-8'), ImportChapter)
+                dlg = wx.MessageDialog(self, "%d cards imported" % n, "Import result", wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
+                dlg.Destroy()
 
         wizard.Destroy()
 
@@ -826,29 +776,32 @@ class FlashCardFrame(wx.Frame):
             dlg = wx.MessageDialog(self, "Add some chapters first", "Error", wx.OK | wx.ICON_ERROR)
             dlg.CenterOnParent(wx.BOTH)
             dlg.ShowModal()
+            dlg.Destroy()
             return
 
         iconfile = os.path.join(self.runtimepath, 'icons/pyFlashCards2-export.png')
-        bitmap = wx.Image(iconfile, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
-        wizard = wiz.Wizard(self, -1, "Export Wizard", bitmap)
+        bitmap = wx.Bitmap(iconfile, wx.BITMAP_TYPE_PNG)
+        wizard = wx.adv.Wizard(self, -1, "Export Wizard", bitmap)
         page1 = ew.ChapterPage(wizard, self.CardSet.GetChapters())
         page2 = ew.ExportTypePage(wizard)
         page3 = ew.FilePage(wizard, self.Config.get('directories', 'export_dir'), page2, page1)
-        wiz.WizardPageSimple_Chain(page1, page2)
-        wiz.WizardPageSimple_Chain(page2, page3)
+        wx.adv.WizardPageSimple.Chain(page1, page2)
+        wx.adv.WizardPageSimple.Chain(page2, page3)
 
         if wizard.RunWizard(page1):
             ExportChapter = page1.GetData()
             ExportType = page2.GetData()
             ExportFile = page3.GetData()
-            if ExportFile <> '':
+            if ExportFile:
                 self.Config.set('directories', 'export_dir', os.path.dirname(ExportFile))
-                n = self.CardSet.Export(ExportType, ExportFile.encode('utf_8'), ExportChapter)
-                dlg = wx.MessageDialog(self, "%d cads exported" % n, "Export result", wx.OK | wx.ICON_INFORMATION)
+                n = self.CardSet.Export(ExportType, ExportFile.encode('utf-8'), ExportChapter)
+                dlg = wx.MessageDialog(self, "%d cards exported" % n, "Export result", wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
+                dlg.Destroy()
             else:
-                dlg = wx.MessageDialog(self, "You must select a file" % n, "Export result", wx.OK | wx.ICON_INFORMATION)
+                dlg = wx.MessageDialog(self, "You must select a file", "Export result", wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
+                dlg.Destroy()
 
         wizard.Destroy()
 
@@ -874,8 +827,8 @@ class FlashCardFrame(wx.Frame):
             self.Config.set('window_size', 'max', 'true')
         else:
             self.Config.set('window_size', 'max', 'false')
-            self.Config.set('window_size', 'width', `w`)
-            self.Config.set('window_size', 'height', `h`)
+            self.Config.set('window_size', 'width', str(w))
+            self.Config.set('window_size', 'height', str(h))
 
         event.Skip()
 
@@ -973,10 +926,10 @@ class FlashCardFrame(wx.Frame):
                     self.CardSet.SetBoxCapacity(BoxIndex, max)
                 except:
                     # Leave the box size unchanged if the new size was invalid 
-                    print 'Something wrong MaxStr=', MaxStr
+                    print('Something wrong MaxStr=', MaxStr)
             self.CardSet.SetStudyBox(StudyBox)
         else:
-            print 'Canceled'
+            print('Canceled')
 
         dlg.Destroy()
 
@@ -1215,9 +1168,10 @@ class TestPanel(wx.Panel):
         # This works on windows, but not on Linux
         # self.FontSizeList = range(8)
 
-        self.FontSizeList=[]
+        self.FontSizeList = []
         for i in range(8):
-            self.FontSizeList.append(`i`)
+            self.FontSizeList.append(str(i))
+
 
     def UpdateFrontDisp(self):
         face = self.CardSet.GetFrontFontFace()
@@ -1336,7 +1290,7 @@ class TestPanel(wx.Panel):
         else:
             self.FrontFontFaceChoice.SetSelection(0)
 
-        size = `self.CardSet.GetFrontFontSize()`
+        size = str(self.CardSet.GetFrontFontSize())  # Changed from backticks to str()
         if size in self.FontSizeList:
             self.FrontFontSizeChoice.SetStringSelection(size)
 
@@ -1346,9 +1300,10 @@ class TestPanel(wx.Panel):
         else:
             self.BackFontFaceChoice.SetSelection(0)
 
-        size = `self.CardSet.GetBackFontSize()`
+        size = str(self.CardSet.GetBackFontSize())  # Changed from backticks to str()
         if size in self.FontSizeList:
             self.BackFontSizeChoice.SetStringSelection(size)
+
 
     def ShowAnswer(self):
         if self.TestCard == None:
@@ -1521,14 +1476,14 @@ class TestPanel(wx.Panel):
         self.CardSet.SetBackFontSize(size)
         self.UpdateBackDisp()
 
-# Function checks if the user data directory exists.  If it does not it 
-# creastes a new one.
+# Function checks if the user data directory exists. If it does not, it creates a new one.
 def CheckUserDataDir():
     sp = wx.StandardPaths.Get()
     UserDataDir = sp.GetUserDataDir()
     if not os.path.exists(UserDataDir):
-        print 'Creating %s' % UserDataDir
+        print(f'Creating {UserDataDir}')  # Updated to Python 3 format
         os.makedirs(UserDataDir)
+
 
 def GetConfigFileName():
     sp = wx.StandardPaths.Get()
@@ -1543,7 +1498,7 @@ def GetAutoCorrFileName():
 if __name__ == '__main__':
     toopen = None
     if len(sys.argv) == 2:
-	toopen = os.path.abspath(sys.argv[1])
+        toopen = os.path.abspath(sys.argv[1])
 
     #print os.getcwd()
     app = wx.PySimpleApp()

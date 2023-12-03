@@ -22,21 +22,15 @@
 #   MA  02110-1301
 #   USA.
 #-------------------------------------------------------------------------------
-# CVS information
-# $Source: /cvsroot/pyflashcards/pyFlashCards/ImportWizard.py,v $
-# $Revision: 1.5 $
-# $Date: 2008/10/04 21:29:51 $
-# $Author: marcin $
-#-------------------------------------------------------------------------------
 import wx
-import wx.wizard as wiz
+import wx.adv
 import os
 
-ID_IW_FILE_PAGE_BROWSE = wx.NewId()
+ID_IW_FILE_PAGE_BROWSE = wx.Window.NewControlId()
 
-class ImportTypePage(wiz.WizardPageSimple):
+class ImportTypePage(wx.adv.WizardPageSimple):
     def __init__(self, parent, types):
-        wiz.WizardPageSimple.__init__(self, parent)
+        wx.adv.WizardPageSimple.__init__(self, parent)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         
@@ -44,7 +38,7 @@ class ImportTypePage(wiz.WizardPageSimple):
         f = label.GetFont()
         f.SetPointSize(12)
         label.SetFont(f)
-        self.ImportTypeListBox = wx.ListBox(self, -1, choices = types)
+        self.ImportTypeListBox = wx.ListBox(self, -1, choices=types)
         self.ImportTypeListBox.SetSelection(0)
 
         sizer.Add(label, 0, wx.BOTTOM, 10)
@@ -58,9 +52,9 @@ class ImportTypePage(wiz.WizardPageSimple):
     def GetIndex(self):
         return self.ImportTypeListBox.GetSelection()
 
-class FilePage(wiz.WizardPageSimple):
+class FilePage(wx.adv.WizardPageSimple):
     def __init__(self, parent, dir, wildcards):
-        wiz.WizardPageSimple.__init__(self, parent)
+        wx.adv.WizardPageSimple.__init__(self, parent)
 
         self.dir = dir
         self.wildcards = wildcards
@@ -87,16 +81,14 @@ class FilePage(wiz.WizardPageSimple):
         self.SetSizer(sizer)
 
     def OnBrowse(self, event):
-        # The previous page
         p = self.GetPrev()
         wildcard = self.wildcards[p.GetIndex()]
 
-        dlg = wx.FileDialog(self, message='Choose a file', defaultDir = self.dir, 
-                    defaultFile='', wildcard=wildcard, style=wx.OPEN)
+        dlg = wx.FileDialog(self, message='Choose a file', defaultDir=self.dir, 
+                            defaultFile='', wildcard=wildcard, style=wx.FD_OPEN)
 
-        ans = dlg.ShowModal()
-        if ans == wx.ID_OK:
-            filename = dlg.GetPaths()[0]
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetPath()
             self.dir = os.path.dirname(filename)
             self.FileTextCtrl.SetValue(filename)
 
@@ -105,9 +97,9 @@ class FilePage(wiz.WizardPageSimple):
     def GetData(self):
         return self.FileTextCtrl.GetValue()
 
-class ChapterPage(wiz.WizardPageSimple):
+class ChapterPage(wx.adv.WizardPageSimple):
     def __init__(self, parent, chapters):
-        wiz.WizardPageSimple.__init__(self, parent)
+        wx.adv.WizardPageSimple.__init__(self, parent)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         
@@ -115,7 +107,7 @@ class ChapterPage(wiz.WizardPageSimple):
         f = label.GetFont()
         f.SetPointSize(12)
         label.SetFont(f)
-        self.ChapterListBox = wx.ListBox(self, -1, choices = chapters)
+        self.ChapterListBox = wx.ListBox(self, -1, choices=chapters)
         self.ChapterListBox.SetSelection(0)
 
         sizer.Add(label, 0, wx.BOTTOM, 10)

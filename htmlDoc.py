@@ -18,83 +18,81 @@ class HtmlFile:
 
     maxLine = 70
 
-    def __init__ (self, aFile):
+    def __init__(self, aFile):
         self.outfile = aFile
         self.preformatted = 0
         self.charCount = 0
-        self.lastWhite = 1
-        self.newline = 1
+        self.lastWhite = True
+        self.newline = True
 
-    def startPreformatted (self):
-        self.preformatted = self.preformatted + 1
+    def startPreformatted(self):
+        self.preformatted += 1
 
-    def endPreformatted (self):
+    def endPreformatted(self):
         if self.preformatted > 0:
-            self.preformatted = self.preformatted - 1
+            self.preformatted -= 1
 
-    def writePreformatted (self, text):
-        self.outfile.write (text)
+    def writePreformatted(self, text):
+        self.outfile.write(text)
         self.charCount = HtmlFile.maxLine
-        self.lastWhite = 0
-        self.newline = 0
+        self.lastWhite = False
+        self.newline = False
 
-    def writeNewline (self):
-        if self.newline == 0:
-            self.outfile.write ("\n")
+    def writeNewline(self):
+        if not self.newline:
+            self.outfile.write("\n")
             self.charCount = 0
-            self.lastWhite = 1
-            self.newline = 1
+            self.lastWhite = True
+            self.newline = True
 
-    def writeWhiteSpace (self):
-        if self.lastWhite == 0:
+    def writeWhiteSpace(self):
+        if not self.lastWhite:
             if self.charCount < HtmlFile.maxLine:
-                self.outfile.write (" ")
-                self.charCount = self.charCount + 1
-                self.lastWhite = 1
+                self.outfile.write(" ")
+                self.charCount += 1
+                self.lastWhite = True
             else:
-                self.writeNewline ()
+                self.writeNewline()
 
-    def writeUnsplittable (self, text):
-        size = len (text)
+    def writeUnsplittable(self, text):
+        size = len(text)
         if size > 0:
-            #if self.lastWhite and self.charCount + size > HtmlFile.maxLine:
-                #self.writeNewline ()
-            self.outfile.write (text)
-            self.charCount = self.charCount + size
-            self.lastWhite = 0
-            self.newline = 0
+            self.outfile.write(text)
+            self.charCount += size
+            self.lastWhite = False
+            self.newline = False
 
-    def writeSplitText (self, text):
-        if len (text) > 0:
-            if len (strip (text[0])) == 0:
-                self.writeWhiteSpace ()
-            words=split (text)
-            if len (words) > 0:
-                self.writeUnsplittable (words[0])
-                if len (words) > 1:
-                    for aWord in words [1:]:
-                        self.writeWhiteSpace ()
-                        self.writeUnsplittable (aWord)
-                if len (strip (text[len (text) - 1])) == 0:
-                    self.writeWhiteSpace ()
+    def writeSplitText(self, text):
+        if text:
+            if text[0].isspace():
+                self.writeWhiteSpace()
+            words = text.split()
+            if words:
+                self.writeUnsplittable(words[0])
+                for aWord in words[1:]:
+                    self.writeWhiteSpace()
+                    self.writeUnsplittable(aWord)
+            if text[-1].isspace():
+                self.writeWhiteSpace()
 
-    def write (self, text):
+    def write(self, text):
         if self.preformatted:
-            self.writePreformatted (text)
+            self.writePreformatted(text)
         else:
-            self.writeSplitText (text)
+            self.writeSplitText(text)
 
-    def writeSpace (self):
+    def writeSpace(self):
         if self.preformatted:
-            self.writePreformatted (" ")
+            self.writePreformatted(" ")
         else:
-            self.writeWhiteSpace ()
+            self.writeWhiteSpace()
 
-    def writeAsIs (self, text):
+    def writeAsIs(self, text):
         if self.preformatted:
-            self.writePreformatted (" ")
+            self.writePreformatted(text)
         else:
-            self.writeUnsplittable (text)
+            self.writeUnsplittable(text)
+
 
 # Attributes of tags
 
@@ -109,7 +107,7 @@ class HtmlAttribute:
             value = values [self.name]
             outfile.writeSpace ()
             outfile.writeAsIs (self.name)
-            if value <> None:
+            if value != None:
                 if self.needQuotes:
                     outfile.writeAsIs ('="%s"' % value)
                 else:
@@ -119,15 +117,15 @@ class HtmlAttribute:
 # Parent class for all HTML contents (abstract class)
 class HtmlContents:
 
-    def writeHtml (self, outfile):
-        self.writeToHtml (HtmlFile (outfile))
+    def writeHtml(self, outfile):
+        self.writeToHtml(HtmlFile(outfile))
 
-    def writeToHtml (self, Htmlout):
-        raise "HTMLException", "Implemented by subclass"
+    def writeToHtml(self, Htmlout):
+        # Updated exception raising syntax
+        raise Exception("Implemented by subclass")
 
-    def setFormValues (self, valueDict):
+    def setFormValues(self, valueDict):
         pass
-
 
 # Whitespace contents - for efficiency, use theSpace
 class HtmlSpace (HtmlContents):
@@ -527,9 +525,9 @@ class HtmlTagFactory:
 
     def A (self, contents = None, href = None, name = None):
         attributes = {}
-        if href <> None:
+        if href != None:
             attributes ["HREF"] = href
-        if name <> None:
+        if name != None:
             attributes ["NAME"] = name
         return HtmlElement ("A", contents, 1, 0, HtmlTagFactory.anchorAttributes, attributes)
 
@@ -570,15 +568,15 @@ class HtmlTagFactory:
     def TABLE (self, contents = None, width = None, border = None, bordercolor = None,\
             cellpadding = None, cellspacing = None):
         attributes = {}
-        if width <> None:
+        if width != None:
             attributes ["WIDTH"] = width
-        if border <> None:
+        if border != None:
             attributes ["BORDER"] = border
-        if bordercolor <> None:
+        if bordercolor != None:
             attributes ["BORDERCOLOR"] = bordercolor
-        if cellpadding <> None:
+        if cellpadding != None:
             attributes ["CELLPADDING"] = cellpadding
-        if cellspacing <> None:
+        if cellspacing != None:
             attributes ["CELLSPACING"] = cellspacing
         return HtmlElement ("TABLE", contents, 1, 1, HtmlTagFactory.tableAttributes, attributes)
 
@@ -587,7 +585,7 @@ class HtmlTagFactory:
         ]
     def TR(self, contents = None, valign = None):
         attributes = {}
-        if valign <> None:
+        if valign != None:
             attributes ["VALIGN"] = valign
         
         return HtmlElement ("TR", contents, 1, 1, HtmlTagFactory.trAttributes, attributes)
@@ -597,7 +595,7 @@ class HtmlTagFactory:
         ]
     def TD(self, contents = None, width = None):
         attributes = {}
-        if width <> None:
+        if width != None:
             attributes ["WIDTH"] = width
         
         return HtmlElement ("TD", contents, 1, 1, HtmlTagFactory.trAttributes, attributes)

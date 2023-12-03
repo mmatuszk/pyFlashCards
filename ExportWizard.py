@@ -22,23 +22,17 @@
 #   MA  02110-1301
 #   USA.
 #-------------------------------------------------------------------------------
-# CVS information
-# $Source: /cvsroot/pyflashcards/pyFlashCards/ExportWizard.py,v $
-# $Revision: 1.3 $
-# $Date: 2008/10/04 21:29:51 $
-# $Author: marcin $
-#-------------------------------------------------------------------------------
-import wx
-import wx.wizard as wiz
-import os
 
+import wx
+import wx.adv
+import os
 import FlashCard
 
-ID_IW_FILE_PAGE_BROWSE = wx.NewId()
+ID_IW_FILE_PAGE_BROWSE = wx.Window.NewControlId()
 
-class ExportTypePage(wiz.WizardPageSimple):
+class ExportTypePage(wx.adv.WizardPageSimple):
     def __init__(self, parent):
-        wiz.WizardPageSimple.__init__(self, parent)
+        super(ExportTypePage, self).__init__(parent)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         
@@ -46,7 +40,7 @@ class ExportTypePage(wiz.WizardPageSimple):
         f = label.GetFont()
         f.SetPointSize(12)
         label.SetFont(f)
-        self.ExportTypeListBox = wx.ListBox(self, -1, choices = FlashCard.ExportTypeList)
+        self.ExportTypeListBox = wx.ListBox(self, -1, choices=FlashCard.ExportTypeList)
         self.ExportTypeListBox.SetSelection(0)
 
         sizer.Add(label, 0, wx.BOTTOM, 10)
@@ -60,9 +54,9 @@ class ExportTypePage(wiz.WizardPageSimple):
     def GetIndex(self):
         return self.ExportTypeListBox.GetSelection()
 
-class FilePage(wiz.WizardPageSimple):
+class FilePage(wx.adv.WizardPageSimple):
     def __init__(self, parent, dir, typepage, chapterpage):
-        wiz.WizardPageSimple.__init__(self, parent)
+        super(FilePage, self).__init__(parent)
 
         self.dir = dir
         self.typepage = typepage
@@ -74,10 +68,10 @@ class FilePage(wiz.WizardPageSimple):
 
         sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         label = wx.StaticText(self, -1, 'File: ')
-        self.FileTextCtrl = wx.TextCtrl(self, -1, style = wx.TE_READONLY)
+        self.FileTextCtrl = wx.TextCtrl(self, -1, style=wx.TE_READONLY)
 
-        sizer1.Add(label, 0, wx.RIGHT | wx.CENTER, 5)
-        sizer1.Add(self.FileTextCtrl, 1, wx.RIGHT | wx.CENTER | wx.EXPAND, 10)
+        sizer1.Add(label, 0, wx.RIGHT | wx.ALIGN_CENTER, 5)
+        sizer1.Add(self.FileTextCtrl, 1, wx.RIGHT | wx.ALIGN_CENTER | wx.EXPAND, 10)
 
         sizer.Add(sizer1, 0, wx.BOTTOM | wx.EXPAND, 10)
 
@@ -93,8 +87,8 @@ class FilePage(wiz.WizardPageSimple):
         # The previous page
         wildcard = FlashCard.GetExportWildcard(self.typepage.GetData())
 
-        dlg = wx.FileDialog(self, message='Choose a file', defaultDir = self.dir, 
-                    defaultFile='', wildcard=wildcard, style=wx.SAVE | wx.OVERWRITE_PROMPT)
+        dlg = wx.FileDialog(self, message='Choose a file', defaultDir=self.dir, 
+                            defaultFile='', wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         # Set default file name = chapter
         dlg.SetFilename(self.chapterpage.GetData())
 
@@ -102,11 +96,10 @@ class FilePage(wiz.WizardPageSimple):
         if ans == wx.ID_OK:
             filename = dlg.GetPaths()[0]
 
-            # On Linux we need to make sure that the extension is added
-            # On windows the dialog adds the extension automatically
+            # Handle file extension
             root, ext = os.path.splitext(filename)
             if ext == '':
-                filename = root+'.%s' % FlashCard.GetExportExt(self.typepage.GetData())
+                filename = root + '.%s' % FlashCard.GetExportExt(self.typepage.GetData())
 
             self.dir = os.path.dirname(filename)
             self.FileTextCtrl.SetValue(filename)
@@ -116,9 +109,9 @@ class FilePage(wiz.WizardPageSimple):
     def GetData(self):
         return self.FileTextCtrl.GetValue()
 
-class ChapterPage(wiz.WizardPageSimple):
+class ChapterPage(wx.adv.WizardPageSimple):
     def __init__(self, parent, chapters):
-        wiz.WizardPageSimple.__init__(self, parent)
+        super(ChapterPage, self).__init__(parent)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         
@@ -126,7 +119,7 @@ class ChapterPage(wiz.WizardPageSimple):
         f = label.GetFont()
         f.SetPointSize(12)
         label.SetFont(f)
-        self.ChapterListBox = wx.ListBox(self, -1, choices = chapters)
+        self.ChapterListBox = wx.ListBox(self, -1, choices=chapters)
         self.ChapterListBox.SetSelection(0)
 
         sizer.Add(label, 0, wx.BOTTOM, 10)
@@ -136,4 +129,3 @@ class ChapterPage(wiz.WizardPageSimple):
 
     def GetData(self):
         return self.ChapterListBox.GetStringSelection()
-

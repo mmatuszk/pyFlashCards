@@ -22,12 +22,6 @@
 #   MA  02110-1301
 #   USA.
 #-------------------------------------------------------------------------------
-# CVS information
-# $Source: /cvsroot/pyflashcards/pyFlashCards/ChapterManagerDlg.py,v $
-# $Revision: 1.7 $
-# $Date: 2008/12/11 18:59:55 $
-# $Author: marcin201 $
-#-------------------------------------------------------------------------------
 
 import wx
 import FlashCard
@@ -35,12 +29,12 @@ import FlashCard
 def create(parent):
     return ChapterManagerDlg(parent)
 
-ID_CHAPTERMANAGERDLG                    = wx.NewId()
-ID_CHAPTERMANAGERDLGCHAPTERLISTCTRL     = wx.NewId()
-ID_CHAPTERMANAGERDLGCHAPTERTITLEENTRY   = wx.NewId()
-ID_CHAPTERMANAGERDLGMOVEUPBUTTON        = wx.NewId()
-ID_CHAPTERMANAGERDLGMOVEDOWNBUTTON      = wx.NewId()
-ID_CHAPTERMANAGERDLGDELETEBUTTON        = wx.NewId()
+ID_CHAPTERMANAGERDLG                    = wx.Window.NewControlId()
+ID_CHAPTERMANAGERDLGCHAPTERLISTCTRL     = wx.Window.NewControlId()
+ID_CHAPTERMANAGERDLGCHAPTERTITLEENTRY   = wx.Window.NewControlId()
+ID_CHAPTERMANAGERDLGMOVEUPBUTTON        = wx.Window.NewControlId()
+ID_CHAPTERMANAGERDLGMOVEDOWNBUTTON      = wx.Window.NewControlId()
+ID_CHAPTERMANAGERDLGDELETEBUTTON        = wx.Window.NewControlId()
 
 
 class ChapterManagerDlg(wx.Dialog):
@@ -125,9 +119,9 @@ class ChapterManagerDlg(wx.Dialog):
             label = self.CardSet.GetChapterLabel(chapter)
             # Insert cards at the end of the list by getting the index from the
             # number of items in the list
-            index = self.ChapterListCtrl.GetItemCount()
-            self.ChapterListCtrl.InsertStringItem(index, label)            
-            self.ChapterListCtrl.SetStringItem(index, 1, chapter)
+            index = self.ChapterListCtrl.InsertItem(self.ChapterListCtrl.GetItemCount(), label)
+            self.ChapterListCtrl.SetItem(index, 1, chapter)
+
 
     def GetCardSet(self):
         return self.CardSet
@@ -147,8 +141,8 @@ class ChapterManagerDlg(wx.Dialog):
                 self.CardSet.AddChapter(chapter)
                 self.AddChapters2List([chapter])
                 self.ChapterTitleEntry.SetValue('')
-            except FlashCard.FlashCardError, err:
-                MsgWin = wx.MessageDialog(self, err.getValue(), 'Error', wx.OK | wx.ICON_ERROR)
+            except FlashCard.FlashCardError as err:  # Updated to Python 3 syntax
+                MsgWin = wx.MessageDialog(self, str(err), 'Error', wx.OK | wx.ICON_ERROR)
                 MsgWin.ShowModal()
         else:
             if self.OldChapterTitle == chapter:

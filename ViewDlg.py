@@ -25,12 +25,6 @@
 #   MA  02110-1301
 #   USA.
 #-------------------------------------------------------------------------------
-# CVS information
-# $Source: /cvsroot/pyflashcards/pyFlashCards/ViewDlg.py,v $
-# $Revision: 1.3 $
-# $Date: 2006/10/29 23:40:41 $
-# $Author: marcin $
-#-------------------------------------------------------------------------------
 
 import wx
 import wx.html as html
@@ -40,21 +34,10 @@ class ViewDialog(wx.Dialog):
             self, parent, ID, title, size=wx.DefaultSize, pos=wx.DefaultPosition, 
             style=wx.DEFAULT_DIALOG_STYLE | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER
             ):
-        # Instead of calling wx.Dialog.__init__ we precreate the dialog
-        # so we can set an extra style that must be set before
-        # creation, and then we create the GUI dialog using the Create
-        # method.
-        pre = wx.PreDialog()
-        pre.SetExtraStyle(wx.DIALOG_EX_CONTEXTHELP)
-        pre.Create(parent, ID, title, pos, size, style)
+        # Directly create the dialog
+        super(ViewDialog, self).__init__(parent, ID, title, pos, size, style)
 
-        # This next step is the most important, it turns this Python
-        # object into the real wrapper of the dialog (instead of pre)
-        # as far as the wxPython extension is concerned.
-        self.PostCreate(pre)
-
-        # Now continue with the normal construction of the dialog
-        # contents
+        # Now continue with the normal construction of the dialog contents
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         self.html = html.HtmlWindow(self, -1, style=wx.SUNKEN_BORDER | wx.HSCROLL)
@@ -63,6 +46,9 @@ class ViewDialog(wx.Dialog):
 
         self.SetSizer(sizer)
         sizer.Fit(self)
+
+         # Maximize the dialog
+        self.Maximize(True)
 
     def SetPage(self, page):
         self.html.SetPage(page)

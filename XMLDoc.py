@@ -1,16 +1,15 @@
 from xml.dom.minidom import Document, parse, parseString
-from types import StringType, UnicodeType
-import string
+import codecs
 
+# Define the encoding to be used
 enc = "utf_8"
 
 def _encode(v):
-#    if isinstance(v, UnicodeType):
-#        v = v.encode(enc)
+    # In Python 3, all strings are unicode by default.
+    # If you need to encode strings for a specific reason, you can use v.encode(enc)
     return v
 
 class XMLElement:
-
     def __init__(self, doc, el):
         self.doc = doc
         self.el = el
@@ -48,44 +47,32 @@ class XMLElement:
             el.setAttribute(k, _encode(str(v)))
         return self._inst(self.el.appendChild(el))
 
-    # add 2
-    def add2(self, tag, list, **kwargs):
-        el = self.doc.createElement(tag)
-        for k in list:
-            print k
-            el.setAttribute(k, _encode(str(kwargs[k])))
-        return self._inst(self.el.appendChild(el))
-
     def addText(self, data):
-        return self._inst(
-            self.el.appendChild(
-                self.doc.createTextNode(_encode(data))))
+        return self._inst(self.el.appendChild(self.doc.createTextNode(_encode(data))))
 
     def addComment(self, data):
-        return self._inst(
-            self.el.appendChild(
-                self.doc.createComment(data)))
+        return self._inst(self.el.appendChild(self.doc.createComment(data)))
 
     def getText(self, sep=" "):
         rc = []
         for node in self.el.childNodes:
             if node.nodeType == node.TEXT_NODE:
                 rc.append(node.data)
-        return _encode(string.join(rc, sep))
+        return _encode(sep.join(rc))
 
     def getAll(self, tag):
-        return map(self._inst, self.el.getElementsByTagName(tag))
+        return list(map(self._inst, self.el.getElementsByTagName(tag)))
 
 class XMLDocument(XMLElement):
-
     def __init__(self, tag=None, **kwargs):
         self.doc  = Document()
         XMLElement.__init__(self, self.doc, self.doc)
         if tag:
             self.el = self.add(tag, **kwargs).el
 
-    def writexml(self, indent='', addindent='', newl=''):
-        self.doc.writexml(indent, addindent, newl)
+    def writexml(self, writer, indent='', addindent='', newl=''):
+        # The writexml method now takes a writer object instead of just a file path.
+        self.doc.writexml(writer, indent, addindent, newl)
 
     def parse(self, d):
         self.doc = self.el = parse(d)
@@ -94,44 +81,28 @@ class XMLDocument(XMLElement):
     def parseString(self, d):
         self.doc = self.el = parseString(_encode(d))
         return self
-#if __name__=="__main__":
 
-    # Example of dumping a database structure
-#    doc = XMLDocument("database", name="testdb")
-#    table = doc.add("table", name="test")
-#    table.add("field", name="counter", type="int")
-#    table.add("field", name="name", type="varchar")
-#    table.add("field", name="info", type="text")
-#    print doc
+# Below is an example of how you might use these classes.
+if __name__ == "__main__":
+    # Create a new XMLDocument with a root tag of 'data'
+    doc = XMLDocument("data")
 
-    # Simulate reading a XML file
-#    ndoc = XMLDocument()
-#    ndoc.parseString(str(doc))
-#    root = ndoc.getAll("database")
-#    if root:
-#        db = root[0]
-#        print "Database:", db["name"]
-#        for table in db.getAll("table"):
-#            print "  Table:", table["name"]
-#            for field in db.getAll("field"):
-#                print "    Field:", field["name"], "- Type:", field["type"]
-#
-#    # It's object oriented
-#    print XMLDocument("notice").add("text",format="plain").addText("Some text")
+    # Add chapters
+    cl = doc.add('chapter_list')
+    cl.add('chapter').addText('Chapter 1')
+    cl.add('chapter').addText('Chapter 2')
 
-#doc = XMLDocument("data")
-#cl=doc.add('chapter_list')
-#cl.add('chapter').addText('Chapter 1')
-#cl.add('chapter').addText('Chapter 2')
-#
-#cards = doc.add('cards')
-#c = cards.add('card')
-#c.add('front').addText('front 1')
-#c.add('back').addText('back 1')
-#c.add('chapter').addText('Chapter 1')
-#c.add('box').addText('1')
-#
-#print doc
-#
-#f = codecs.open('test.xml', 'w', 'utf_8')
-#doc.writexml(f)
+    # Add cards
+    cards = doc.add('cards')
+    c = cards.add('card')
+    c.add('front').addText('front 1')
+    c.add('back').addText('back 1')
+    c.add('chapter').addText('Chapter 1')
+    c.add('box').addText('1')
+
+    # Output the document to a file
+    with codecs.open('test.xml', 'w', 'utf_8') as f:
+        doc.writexml(f)
+
+    # If you need to pretty print to console
+    print(doc)

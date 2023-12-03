@@ -32,9 +32,9 @@ import wx
 
 import FlashCard
 
-ID_BOX_MANAGER_DLG = wx.NewId()
+ID_BOX_MANAGER_DLG = wx.Window.NewControlId()
 
-ID_BM_BOX_MAX_TEXT = [wx.NewId() for x in range(FlashCard.BoxNum)]
+ID_BM_BOX_MAX_TEXT = [wx.Window.NewControlId() for x in range(FlashCard.BoxNum)]
 
 class BoxManagerDlg(wx.Dialog):
     def __init__(self, parent, CardSet):
@@ -90,7 +90,7 @@ class BoxSizePanel(wx.Panel):
         TextSize = count.GetSize()
         # Change width to 4 characters
         TextSize[0] = w*5
-        count.SetBestFittingSize(TextSize)
+        count.SetInitialSize(TextSize)
 
         # Set the size of the gauge control based on the size of the text control
         GaugeSize = (200, TextSize[1])
@@ -104,13 +104,15 @@ class BoxSizePanel(wx.Panel):
         max = wx.TextCtrl(self, -1, size = TextSize, style = wx.TE_READONLY)
 
         c = CardSet.GetBoxCardCount(0)
-        count.SetValue(`c`)
+        count.SetValue(str(c))
         m = CardSet.GetTestCardsCount()
-        max.SetValue(`m`)
+        max.SetValue(str(m))
         if m == 0:
             gauge.SetValue(0)
         else:
-            gauge.SetValue(100*c/m)
+            gauge_val = int(100*c/m)
+            gauge.SetValue(gauge_val)
+
 
         # Add all pool controls to the sizer
         sizer.Add(label, (0, 0))
@@ -133,10 +135,10 @@ class BoxSizePanel(wx.Panel):
             self.MaxCtrlList.append((n+1, max))
             
             c = CardSet.GetBoxCardCount(n+1)
-            count.SetValue(`c`)
+            count.SetValue(str(c))
             m =  CardSet.GetBoxCapacity(n+1)
-            max.SetValue(`m`)
-            gauge.SetValue(100*c/m)
+            max.SetValue(str(m))
+            gauge.SetValue(int(100*c/m))
 
             sizer.Add(label, (n+1, 0))
             sizer.Add(gauge, (n+1, 1))

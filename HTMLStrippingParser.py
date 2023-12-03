@@ -1,65 +1,65 @@
-import HTMLParser, string
+from html.parser import HTMLParser
+from html.entities import name2codepoint
+import string
 
-class HTMLStrippingParser(HTMLParser.HTMLParser):
+class HTMLStrippingParser(HTMLParser):
 
     # These are the HTML tags that we will leave intact
     valid_tags = ('b', 'a', 'i', 'br', 'p')
 
-    from htmlentitydefs import entitydefs # replace entitydefs from HTMLParser
-    
     def __init__(self):
-        HTMLParser.HTMLParser.__init__(self)
+        super().__init__()
         self.result = ""
         self.endTagList = [] 
         
     def handle_data(self, data):
         if data:
-            self.result = self.result + data
+            self.result += data
 
     def handle_charref(self, name):
-        self.result = "%s&#%s;" % (self.result, name)
+        try:
+            self.result += chr(int(name))
+        except ValueError:
+            self.result += "&#{};".format(name)
         
     def handle_entityref(self, name):
-        if self.entitydefs.has_key(name): 
-            x = ';'
+        if name in name2codepoint: 
+            self.result += chr(name2codepoint[name])
         else:
-            # this breaks unstandard entities that end with ';'
-            x = ''
-        self.result = "%s&%s%s" % (self.result, name, x)
+            # In case of unknown entity, keep it as it is
+            self.result += "&{};".format(name)
     
-    def unknown_starttag(self, tag, attrs):
+    def handle_starttag(self, tag, attrs):
         """ Delete all tags except for legal ones """
         if tag in self.valid_tags:       
-            self.result = self.result + '<' + tag
+            self.result += '<' + tag
             for k, v in attrs:
-                if string.lower(k[0:2]) != 'on' and string.lower(v[0:10]) != 'javascript':
-                    self.result = '%s %s="%s"' % (self.result, k, v)
-            endTag = '</%s>' % tag
-            self.endTagList.insert(0,endTag)    
-            self.result = self.result + '>'
+                if k.lower()[:2] != 'on' and v.lower()[:10] != 'javascript':
+                    self.result += ' {}="{}"'.format(k, v)
+            endTag = '</{}>'.format(tag)
+            self.endTagList.insert(0, endTag)    
+            self.result += '>'
                 
-    def unknown_endtag(self, tag):
+    def handle_endtag(self, tag):
         if tag in self.valid_tags:
-            self.result = "%s</%s>" % (self.result, tag)
-            remTag = '</%s>' % tag
+            self.result += "</{}>".format(tag)
+            remTag = '</{}>'.format(tag)
             self.endTagList.remove(remTag)
 
     def cleanup(self):
         """ Append missing closing tags """
-        for j in range(len(self.endTagList)):
-                self.result = self.result + self.endTagList[j]    
-        
+        for tag in self.endTagList:
+            self.result += tag    
 
-def strip(s):
+def strip_tags(html):
     """ Strip illegal HTML tags from string s """
     parser = HTMLStrippingParser()
-    parser.feed(s)
+    parser.feed(html)
     parser.close()
     parser.cleanup()
     return parser.result
 
-
 if __name__ == '__main__':
-    str = "<b>Hello World</b>\n<i>Marcin</i>"
+    my_str = "<b>Hello World</b>\n<i>Marcin</i>"
 
-    print strip(str)
+    print(strip_tags(my_str))

@@ -22,22 +22,16 @@
 #   MA  02110-1301
 #   USA.
 #-------------------------------------------------------------------------------
-# CVS information
-# $Source: /cvsroot/pyflashcards/pyFlashCards/AboutDlg.py,v $
-# $Revision: 1.7 $
-# $Date: 2008/10/04 21:29:51 $
-# $Author: marcin $
-#-------------------------------------------------------------------------------
+
 import wx
 import wx.html as html
-import ConfigParser
+import configparser
 
-ID_ABOUT_DLG = wx.NewId()
+ID_ABOUT_DLG = wx.Window.NewControlId()
 
 revcfg_filename = 'rev.cfg'
 
-license_str =\
-"""
+license_str = """
 <html>
 <body>
 <h3>Credits</h3>
@@ -57,6 +51,7 @@ class AboutDlg(wx.Dialog):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
+        # Ensure the image path is correct and file exists
         img = wx.Image('icons/pyFlashCards2.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         logo = wx.StaticBitmap(self, -1, img)
 
@@ -67,10 +62,8 @@ class AboutDlg(wx.Dialog):
 
         license = html.HtmlWindow(self, -1, size=(500, 300))
         license.SetPage(license_str)
-        
 
         button = wx.Button(self, wx.ID_OK, 'OK')
-        
 
         sizer.Add(logo, 0, wx.CENTER, 10)
         sizer.Add(title, 0, wx.ALL | wx.CENTER, 10)
@@ -80,19 +73,19 @@ class AboutDlg(wx.Dialog):
         self.SetSizerAndFit(sizer)
 
     def GetVersion(self):
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(revcfg_filename)
 
-        # parse configuration file
+        # Parse configuration file
         try:
             major = int(config.get('rev', 'major'))
             minor = int(config.get('rev', 'minor'))
             build = int(config.get('rev', 'build'))
-        except ConfigParser.NoSectionError, sec:
-            print 'No section:', sec
+        except configparser.NoSectionError as sec:
+            print('No section:', sec)
             return 0, 0, 0
-        except ConfigParser.NoOptionError, opt:
-            print 'No option', opt
+        except configparser.NoOptionError as opt:
+            print('No option', opt)
             return 0, 0, 0
 
         return (major, minor, build)

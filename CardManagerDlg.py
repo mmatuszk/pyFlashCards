@@ -23,12 +23,7 @@
 #   MA  02110-1301
 #   USA.
 #-------------------------------------------------------------------------------
-# CVS information
-# $Source: /cvsroot/pyflashcards/pyFlashCards/CardManagerDlg.py,v $
-# $Revision: 1.18 $
-# $Date: 2009/02/25 02:59:33 $
-# $Author: marcin201 $
-#-------------------------------------------------------------------------------
+
 import wx
 import wx.lib.imagebrowser as ib
 import TextHtmlCtrl as th
@@ -37,38 +32,39 @@ import HTMLStrippingParser
 import FlashCard
 import AutoCorrDlg
 import shutil, os
+import configparser 
 
 MaxPopupChapters = 100
 
 def create(parent):
     return CardManagerDlg(parent)
 
-ID_CMDLG                    = wx.NewId()
-ID_CMDLG_BACKENTRY          = wx.NewId()
-ID_CMDLG_BACKIMAGEBTN       = wx.NewId()
-ID_CMDLG_CARDCOUNT          = wx.NewId()
-ID_CMDLG_CARDDOWNBTN        = wx.NewId()
-ID_CMDLG_CARDLISTCTRL       = wx.NewId()
-ID_CMDLG_CARDUPBTN          = wx.NewId()
-ID_CMDLG_CHAPTERSCHOICE     = wx.NewId()
-ID_CMDLG_COMMITCARDBTN      = wx.NewId()
-ID_CMDLG_CANCELCARDBTN      = wx.NewId()
-ID_CMDLG_FINDNEXTBTN        = wx.NewId()
-ID_CMDLG_FINDPREVIOUSBTN    = wx.NewId()
-ID_CMDLG_SEARCHCTRL         = wx.NewId()
-ID_CMDLG_FRONTENTRY         = wx.NewId()
-ID_CMDLG_FRONTIMAGEBUTTON   = wx.NewId()
-ID_CMDLG_REMOVEBACKIMAGEBTN = wx.NewId()
-ID_CMDLG_REMOVEFRONTIMAGEBTN= wx.NewId()
-ID_CMDLG_STATICTEXT1        = wx.NewId()
-ID_CMDLG_STATICTEXT2        = wx.NewId()
-ID_CMDLG_STATICTEXT3        = wx.NewId()
-ID_CMDLG_STATICTEXT4        = wx.NewId()
-ID_CMDLG_STATICTEXT5        = wx.NewId()
-ID_CMDLG_AUTOCORRBTN        = wx.NewId()
+ID_CMDLG                    = wx.Window.NewControlId()
+ID_CMDLG_BACKENTRY          = wx.Window.NewControlId()
+ID_CMDLG_BACKIMAGEBTN       = wx.Window.NewControlId()
+ID_CMDLG_CARDCOUNT          = wx.Window.NewControlId()
+ID_CMDLG_CARDDOWNBTN        = wx.Window.NewControlId()
+ID_CMDLG_CARDLISTCTRL       = wx.Window.NewControlId()
+ID_CMDLG_CARDUPBTN          = wx.Window.NewControlId()
+ID_CMDLG_CHAPTERSCHOICE     = wx.Window.NewControlId()
+ID_CMDLG_COMMITCARDBTN      = wx.Window.NewControlId()
+ID_CMDLG_CANCELCARDBTN      = wx.Window.NewControlId()
+ID_CMDLG_FINDNEXTBTN        = wx.Window.NewControlId()
+ID_CMDLG_FINDPREVIOUSBTN    = wx.Window.NewControlId()
+ID_CMDLG_SEARCHCTRL         = wx.Window.NewControlId()
+ID_CMDLG_FRONTENTRY         = wx.Window.NewControlId()
+ID_CMDLG_FRONTIMAGEBUTTON   = wx.Window.NewControlId()
+ID_CMDLG_REMOVEBACKIMAGEBTN = wx.Window.NewControlId()
+ID_CMDLG_REMOVEFRONTIMAGEBTN= wx.Window.NewControlId()
+ID_CMDLG_STATICTEXT1        = wx.Window.NewControlId()
+ID_CMDLG_STATICTEXT2        = wx.Window.NewControlId()
+ID_CMDLG_STATICTEXT3        = wx.Window.NewControlId()
+ID_CMDLG_STATICTEXT4        = wx.Window.NewControlId()
+ID_CMDLG_STATICTEXT5        = wx.Window.NewControlId()
+ID_CMDLG_AUTOCORRBTN        = wx.Window.NewControlId()
 
-hspacer = (10,1)
-vspacer = (1, 10)
+hspacer = 10
+vspacer = 10
 
 class CardManagerDlg(wx.Dialog):
     def MakeToolbarUI(self, parent):
@@ -87,7 +83,7 @@ class CardManagerDlg(wx.Dialog):
     def MakeChaptersUI(self, parent):
         chapterlabel = wx.StaticText(parent, -1, 'Chapters')
         self.ChaptersChoice = wx.Choice(choices=[],
-              id=ID_CMDLG_CHAPTERSCHOICE, name=u'ChaptersChoice',
+              id=ID_CMDLG_CHAPTERSCHOICE, name='ChaptersChoice',
               parent=self, style=0)
         self.ChaptersChoice.Bind(wx.EVT_CHOICE, self.OnChaptersChoiceChoice,
               id=ID_CMDLG_CHAPTERSCHOICE)
@@ -101,16 +97,16 @@ class CardManagerDlg(wx.Dialog):
 
     def MakeEntryUI(self, parent):
         self.FrontEntry = th.TextHtmlCtrl(id=ID_CMDLG_FRONTENTRY,
-              name=u'FrontEntry', parent=self, style=wx.TE_MULTILINE,
-              value=u'', autocorr=self.autocorr)
-        frontlabel = wx.StaticText( label=u'Front', parent=self,
+              name='FrontEntry', parent=self, style=wx.TE_MULTILINE,
+              value='', autocorr=self.autocorr)
+        frontlabel = wx.StaticText( label='Front', parent=self,
               style=0)
 
         self.BackEntry = th.TextHtmlCtrl(id=ID_CMDLG_BACKENTRY,
-              name=u'BackEntry', parent=self, 
+              name='BackEntry', parent=self, 
               style=wx.TE_MULTILINE,
-              value=u'', autocorr=self.autocorr)
-        backlabel = wx.StaticText(label=u'Back', parent=self,
+              value='', autocorr=self.autocorr)
+        backlabel = wx.StaticText(label='Back', parent=self,
               style=0)
 
         self.CommitCardBtn = wx.Button(parent, ID_CMDLG_COMMITCARDBTN,
@@ -124,14 +120,14 @@ class CardManagerDlg(wx.Dialog):
               id=ID_CMDLG_CANCELCARDBTN)
 
         self.FrontImageButton = wx.BitmapButton(bitmap=wx.NullBitmap,
-              id=ID_CMDLG_FRONTIMAGEBUTTON, name=u'FrontImageButton',
+              id=ID_CMDLG_FRONTIMAGEBUTTON, name='FrontImageButton',
               parent=self, size=wx.Size(120, 120),
               style=wx.BU_AUTODRAW)
         self.FrontImageButton.Bind(wx.EVT_BUTTON, self.OnFrontImageButtonButton,
               id=ID_CMDLG_FRONTIMAGEBUTTON)
 
         self.BackImageButton = wx.BitmapButton(bitmap=wx.NullBitmap,
-              id=ID_CMDLG_BACKIMAGEBTN, name=u'BackImageButton',
+              id=ID_CMDLG_BACKIMAGEBTN, name='BackImageButton',
               parent=self, size=wx.Size(120, 120),
               style=wx.BU_AUTODRAW)
         self.BackImageButton.Bind(wx.EVT_BUTTON, self.OnBackImageButtonButton,
@@ -139,7 +135,7 @@ class CardManagerDlg(wx.Dialog):
 
         self.RemoveFrontImageButton = wx.Button(
               id=ID_CMDLG_REMOVEFRONTIMAGEBTN,
-              label=u'Remove Image', name=u'RemoveFrontImageButton',
+              label='Remove Image', name='RemoveFrontImageButton',
               parent=self, style=0)
         self.RemoveFrontImageButton.Bind(wx.EVT_BUTTON,
               self.OnRemoveFrontImageButtonButton,
@@ -147,7 +143,7 @@ class CardManagerDlg(wx.Dialog):
 
         self.RemoveBackImageButton = wx.Button(
               id=ID_CMDLG_REMOVEBACKIMAGEBTN,
-              label=u'Remove Image', name=u'RemoveBackImageButton',
+              label='Remove Image', name='RemoveBackImageButton',
               parent=self, style=0)
         self.RemoveBackImageButton.Bind(wx.EVT_BUTTON,
               self.OnRemoveBackImageButtonButton,
@@ -199,7 +195,7 @@ class CardManagerDlg(wx.Dialog):
         entry_sizer_row.Add(entry_sizer_img, 0, wx.ALIGN_CENTER)
         
         sizer.Add(entry_sizer_row, 1, wx.EXPAND)
-        sizer.AddSpacer((1, 15))
+        sizer.AddSpacer(15)
 
         # entry sizer: back
         entry_sizer_row = wx.BoxSizer(wx.HORIZONTAL)
@@ -245,12 +241,12 @@ class CardManagerDlg(wx.Dialog):
         self.SearchCtrl.Bind(wx.EVT_TEXT, self.OnFindNext)
 
         self.FindNextBtn = wx.Button(id=ID_CMDLG_FINDNEXTBTN,
-              label=u'Find Next', name=u'FindNextBtn', parent=self,
+              label='Find Next', name='FindNextBtn', parent=self,
               style=0)
         self.FindNextBtn.Bind(wx.EVT_BUTTON, self.OnFindNext)
 
         self.FindPrevBtn = wx.Button(id=ID_CMDLG_FINDPREVIOUSBTN,
-              label=u'FindPrev', name=u'FindPrevBtn', parent=self,
+              label='FindPrev', name='FindPrevBtn', parent=self,
               style=0)
         self.FindPrevBtn.Bind(wx.EVT_BUTTON, self.OnFindPrev)
 
@@ -258,7 +254,7 @@ class CardManagerDlg(wx.Dialog):
         font = self.FindMessage.GetFont()
         font.SetWeight(wx.BOLD)
         self.FindMessage.SetFont(font)
-        self.FindMessage.SetForegroundColour(wx.Color(94, 122, 167))
+        self.FindMessage.SetForegroundColour(wx.Colour(94, 122, 167))
 
         h_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -270,16 +266,16 @@ class CardManagerDlg(wx.Dialog):
         return h_sizer
 
     def MakeCardCountUI(self, parent):
-        countlabel = wx.StaticText(label=u'Cards', parent=self,
+        countlabel = wx.StaticText(label='Cards', parent=self,
               style=0)
         self.CardCount = wx.TextCtrl(id=ID_CMDLG_CARDCOUNT,
-              name=u'CardCount', parent=self, 
-              size=wx.Size(48, 21), style=wx.TE_READONLY, value=u'')
+              name='CardCount', parent=self, 
+              size=wx.Size(48, 21), style=wx.TE_READONLY, value='')
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         sizer.Add(countlabel)
-        sizer.AddSpacer(hspacer, 0, wx.ALIGN_CENTER)
+        sizer.AddSpacer(hspacer)
         sizer.Add(self.CardCount, 0, wx.ALIGN_CENTER)
 
         return sizer
@@ -290,7 +286,7 @@ class CardManagerDlg(wx.Dialog):
         else:
             style = wx.LC_REPORT
         self.CardListCtrl = wx.ListCtrl(id=ID_CMDLG_CARDLISTCTRL,
-              name=u'CardListCtrl', parent=self, 
+              name='CardListCtrl', parent=self, 
               size=wx.Size(300, 100), style= style)
         self.CardListCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED,
               self.OnCardListCtrlListItemSelected,
@@ -300,14 +296,14 @@ class CardManagerDlg(wx.Dialog):
               id=ID_CMDLG_CARDLISTCTRL)
         self.CardListCtrl.Bind(wx.EVT_CHAR, self.OnCardListCtrlChar)
 
-        self.CardUpBtn = wx.Button(id=ID_CMDLG_CARDUPBTN, label=u'Up',
-              name=u'CardUpBtn', parent=self, 
+        self.CardUpBtn = wx.Button(id=ID_CMDLG_CARDUPBTN, label='Up',
+              name='CardUpBtn', parent=self, 
               style=0)
         self.CardUpBtn.Bind(wx.EVT_BUTTON, self.OnCardsUp,
               id=ID_CMDLG_CARDUPBTN)
 
         self.CardDownBtn = wx.Button(id=ID_CMDLG_CARDDOWNBTN,
-              label=u'Down', name=u'CardDownBtn', parent=self,
+              label='Down', name='CardDownBtn', parent=self,
               style=0)
         self.CardDownBtn.Bind(wx.EVT_BUTTON, self.OnCardsDown,
               id=ID_CMDLG_CARDDOWNBTN)
@@ -344,11 +340,11 @@ class CardManagerDlg(wx.Dialog):
         # I changed it, but kept a lot of code to save time so it looks
         # a bit strange
         wx.Dialog.__init__(self, id=ID_CMDLG, 
-              name=u'CardManagerDlg',
+              name='CardManagerDlg',
               parent=prnt, size=size,
               style=wx.TAB_TRAVERSAL | wx.DEFAULT_DIALOG_STYLE |
               wx.RESIZE_BORDER,
-              title=u'Card Manager')
+              title='Card Manager')
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         # Make entry before chapters to get focus on front entry
@@ -363,7 +359,7 @@ class CardManagerDlg(wx.Dialog):
         sizer_col = wx.BoxSizer(wx.VERTICAL)
         sizer_col.Add(tb_sizer, 0, wx.EXPAND)
         sizer_col.Add(ch_sizer, 0, wx.EXPAND)
-        sizer_col.AddSpacer((1,15))
+        sizer_col.AddSpacer(15)
         sizer_col.Add(entry_sizer, 1, wx.EXPAND)
         sizer_col.Add(find_sizer, 0, wx.ALIGN_LEFT)
 
@@ -421,7 +417,7 @@ class CardManagerDlg(wx.Dialog):
         self.AddCards2ListUI(self.CardSet.GetChapterCards(chapters[0]))
 
 
-        self.CardCount.SetValue(self.CardSet.GetChapterCardCount(chapters[0]))
+        self.CardCount.SetValue(str(self.CardSet.GetChapterCardCount(chapters[0])))
 
         # for wxMSW
         self.CardListCtrl.Bind(wx.EVT_COMMAND_RIGHT_CLICK, self.OnRightClick)
@@ -469,15 +465,37 @@ class CardManagerDlg(wx.Dialog):
 
     def InitCardEntry(self):
         f = wx.Font(12, wx.SWISS, wx.NORMAL, wx.NORMAL, False)
-        print('CardManager: ' + f.GetFaceName())
         self.FrontEntry.SetFont(f)
         self.BackEntry.SetFont(f)
 
-        iconfile = os.path.join(self.runtimepath, 'icons/noimage.jpg')
-        self.NoImageBitmap = wx.Image(iconfile, 
-                wx.BITMAP_TYPE_JPEG).ConvertToBitmap()
+        # Explicitly initialize the JPEG handler.
+        wx.Image.AddHandler(wx.JPEGHandler())
+
+        iconfile = os.path.join(self.runtimepath, 'icons', 'noimage.jpg')  # Use os.path.join for correct path formatting
+        iconfile = os.path.normpath(iconfile)  # Normalize path to correct forward/backward slashes
+
+        try:
+            # Check if the file can be accessed.
+            if not os.path.isfile(iconfile):
+                raise IOError(f"File does not exist: {iconfile}")
+            
+            # Check the permissions of the file.
+            if not os.access(iconfile, os.R_OK):
+                raise IOError(f"File is not accessible or readable: {iconfile}")
+
+            # Attempt to load the image.
+            image = wx.Image(iconfile, wx.BITMAP_TYPE_JPEG)
+            if not image.IsOk():
+                raise IOError(f"Image failed to load: {iconfile}")
+            self.NoImageBitmap = image.ConvertToBitmap()
+        except Exception as e:
+            print(f"Error loading image: {e}")
+            # Fallback to a default bitmap if the image fails to load.
+            self.NoImageBitmap = wx.Bitmap(97, 97)  # Create an empty bitmap of the same size.
+
         self.FrontImageButton.SetBitmapLabel(self.NoImageBitmap)
         self.BackImageButton.SetBitmapLabel(self.NoImageBitmap)
+
 
     def ResetCardUI(self):
         self.FrontEntry.Enable()
@@ -531,8 +549,8 @@ class CardManagerDlg(wx.Dialog):
             # Insert cards at the end of the list by getting the index from the
             # number of items in the list
             index = self.CardListCtrl.GetItemCount()
-            self.CardListCtrl.InsertStringItem(index, front)            
-            self.CardListCtrl.SetStringItem(index, 1, back)
+            self.CardListCtrl.InsertItem(index, front)            
+            self.CardListCtrl.SetItem(index, 1, back)
 
     
     # Insert a card to list UI at the index position
@@ -541,8 +559,8 @@ class CardManagerDlg(wx.Dialog):
         back = card.GetBackFirstLineNoHtml()
         # Insert cards at the end of the list by getting the index from the
         # number of items in the list
-        self.CardListCtrl.InsertStringItem(index, front)            
-        self.CardListCtrl.SetStringItem(index, 1, back)
+        self.CardListCtrl.ListCtrl.InsertItem(index, front)            
+        self.CardListCtrl.SetItem(index, 1, back)
 
     def MakeCardImage(self, src):
         dest = self.CardSet.GetNextImageName()
@@ -648,9 +666,9 @@ class CardManagerDlg(wx.Dialog):
                 pass
 
             # Update GUI controls
-            self.CardListCtrl.SetStringItem(index, 0, 
+            self.CardListCtrl.SetItem(index, 0, 
                     card.GetFrontFirstLineNoHtml())
-            self.CardListCtrl.SetStringItem(index, 1, 
+            self.CardListCtrl.SetItem(index, 1, 
                     card.GetBackFirstLineNoHtml())
             self.CardListCtrl.SetItemState(index, 0, wx.LIST_STATE_SELECTED)
             
@@ -720,8 +738,8 @@ class CardManagerDlg(wx.Dialog):
         self.CardSet.InsertNewCardAbove(chapter, index)
 
         # Update the state of the card list control
-        self.CardListCtrl.InsertStringItem(index, "")            
-        self.CardListCtrl.SetStringItem(index, 1, "")
+        self.CardListCtrl.ListCtrl.InsertItem(index, "")            
+        self.CardListCtrl.SetItem(index, 1, "")
         self.CardListCtrl.SetItemState(index, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
 
     def InsertNewCardBelow(self):
@@ -745,8 +763,8 @@ class CardManagerDlg(wx.Dialog):
         self.CardSet.InsertNewCardBelow(chapter, index)
 
         # Update the state of the card list control
-        self.CardListCtrl.InsertStringItem(index+1, "")            
-        self.CardListCtrl.SetStringItem(index+1, 1, "")
+        self.CardListCtrl.ListCtrl.InsertItem(index+1, "")            
+        self.CardListCtrl.SetItem(index+1, 1, "")
         self.CardListCtrl.SetItemState(index+1, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
 
     def CardsUp(self):
@@ -873,6 +891,8 @@ class CardManagerDlg(wx.Dialog):
 
         # Bring focus back to the search ctrl
         self.SearchCtrl.SetFocus()
+        self.SearchCtrl.SetInsertionPointEnd()  # Moves the cursor to the end of the text
+
 
     def FindPrev(self, searchStr, case=False):
         if searchStr == '':
@@ -997,14 +1017,19 @@ class CardManagerDlg(wx.Dialog):
             event.Skip()
 
     def OnFrontImageButtonButton(self, event):
-        dir = self.Config.get('directories', 'image_dir')
+        # Default to the home directory if Config is None
+        if self.Config is not None:
+            dir = self.Config.get('directories', 'image_dir')
+        else:
+            dir = os.path.expanduser('~')  # Home directory as default
+
         dlg = ib.ImageDialog(self, dir)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFile()
             
-            # Update config
-            self.Config.set('directories', 'image_dir', 
-                    os.path.dirname(filename))
+            # Update Config if it's not None
+            if self.Config is not None:
+                self.Config.set('directories', 'image_dir', os.path.dirname(filename))
 
             self.NewFrontImage = filename
             self.FrontImageChanged = True
@@ -1012,20 +1037,24 @@ class CardManagerDlg(wx.Dialog):
             # Create the bitmap for the button
             bsize = self.FrontImageButton.GetSize()
 
-            self.FrontImageButton.SetBitmapLabel(
-                    MakeButtonBitmap(self.NewFrontImage, bsize))
+            self.FrontImageButton.SetBitmapLabel(MakeButtonBitmap(self.NewFrontImage, bsize))
 
         dlg.Destroy()
 
     def OnBackImageButtonButton(self, event):
-        dir = self.Config.get('directories', 'image_dir')
+        # Default to the home directory if Config is None
+        if self.Config is not None:
+            dir = self.Config.get('directories', 'image_dir')
+        else:
+            dir = os.path.expanduser('~')  # Home directory as default
+
         dlg = ib.ImageDialog(self, dir)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFile()
             
-            # Update config
-            self.Config.set('directories', 'image_dir', 
-                    os.path.dirname(filename))
+            # Update Config if it's not None
+            if self.Config is not None:
+                self.Config.set('directories', 'image_dir', os.path.dirname(filename))
 
             self.NewBackImage = filename
             self.BackImageChanged = True
@@ -1033,8 +1062,7 @@ class CardManagerDlg(wx.Dialog):
             # Create the bitmap for the button
             bsize = self.BackImageButton.GetSize()
 
-            self.BackImageButton.SetBitmapLabel(
-                    MakeButtonBitmap(self.NewBackImage, bsize))
+            self.BackImageButton.SetBitmapLabel(MakeButtonBitmap(self.NewBackImage, bsize))
 
         dlg.Destroy()
 
@@ -1051,11 +1079,11 @@ class CardManagerDlg(wx.Dialog):
     def OnRightClick(self, event):
         # only do this part the first time so the events are only bound once
         if not hasattr(self, "popupIDDelete"):
-            self.popupIDInsertAbove = wx.NewId()
-            self.popupIDInsertBelow = wx.NewId()
-            self.popupIDDelete = wx.NewId()
-            self.popupIDMove = wx.NewId()
-            self.popupIDChapters = [wx.NewId() for n in range(MaxPopupChapters)]
+            self.popupIDInsertAbove = wx.Window.NewControlId()
+            self.popupIDInsertBelow = wx.Window.NewControlId()
+            self.popupIDDelete = wx.Window.NewControlId()
+            self.popupIDMove = wx.Window.NewControlId()
+            self.popupIDChapters = [wx.Window.NewControlId() for n in range(MaxPopupChapters)]
 
             self.Bind(wx.EVT_MENU, self.OnPopupInsertAbove, id=self.popupIDInsertAbove)
             self.Bind(wx.EVT_MENU, self.OnPopupInsertBelow, id=self.popupIDInsertBelow)
@@ -1080,7 +1108,7 @@ class CardManagerDlg(wx.Dialog):
                 sm.Append(id, chapter)
                 self.PopupIDChapterMap[id] = chapter
 
-        menu.AppendMenu(self.popupIDMove, "Move", sm)
+        menu.Append(self.popupIDMove, "Move", sm)
         
 
         # Popup the menu.  If an item is selected then its handler

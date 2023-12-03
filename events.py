@@ -22,12 +22,7 @@
 #   MA  02110-1301
 #   USA.
 #-------------------------------------------------------------------------------
-# CVS information
-# $Source: /cvsroot/pyflashcards/pyFlashCards/events.py,v $
-# $Revision: 1.4 $
-# $Date: 2008/10/04 21:29:51 $
-# $Author: marcin $
-#-------------------------------------------------------------------------------
+
 import wx
 
 myEVT_WINDOW_CLOSED = wx.NewEventType()
