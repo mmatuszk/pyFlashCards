@@ -1,0 +1,9 @@
+CardBrowserDlg.py - updated and tested
+BoxManagerDlg.py - updated and tested
+AboutDlg.py - updated and tested
+AutoCorr.py - updated and tested
+CardBrowserDlg.py - updated and tested
+ChapterManagerDlg.py - updated and tested
+ExportWizard.py - updated and tested
+ImportWizard.py - updated and tested
+MyArtProvider.py - reviewed and seems OK
