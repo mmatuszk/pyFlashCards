@@ -111,3 +111,4 @@ dmypy.json
 # Project specific test files
 test.xml
 test_autocorr_save.xml
+autocorr.xml
