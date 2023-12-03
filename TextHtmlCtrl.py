@@ -1,4 +1,29 @@
+# TextHtmlCtrl.py
 import wx
+import platform
+
+# Determine the operating system
+is_windows = platform.system() == 'Windows'
+
+def print_index_and_char(text):
+    result = {index: char for index, char in enumerate(text)}
+    print(result)
+
+# TextHtmlCtrl
+#
+# A specialized wx.TextCtrl for HTML content editing in wxPython applications.
+# This class extends the functionality of the standard wx.TextCtrl to include
+# features tailored for convenient HTML editing. It incorporates auto-correction
+# capabilities, enabling the automatic replacement of common typing errors with
+# the correct text. Additionally, this control offers a range of keyboard shortcuts
+# for quickly inserting standard HTML tags and special characters, enhancing
+# the efficiency of HTML content creation and formatting.
+#
+# The control binds to specific keyboard events to implement its functionality.
+# The OnKeyDown event is used for detecting and responding to keyboard shortcuts,
+# while the OnText event manages the auto-correction feature. This control makes
+# HTML editing more accessible and user-friendly within wxPython applications,
+# particularly for users who frequently work with HTML content.
 
 class TextHtmlCtrl(wx.TextCtrl):
     def __init__(self, parent, id, autocorr, value="", pos=wx.DefaultPosition,
@@ -14,24 +39,88 @@ class TextHtmlCtrl(wx.TextCtrl):
         self.Bind(wx.EVT_TEXT, self.OnText)
 
 
+    # def OnText(self, event):
+    #     text = self.GetValue()
+    #     if len(text) == 0:
+    #         return
+
+    #     end = self.GetInsertionPoint() - 1
+
+    #     # Ensure 'end' is within the bounds of the text
+    #     if end >= len(text):
+    #         return
+
+    #     # Adjust for different newline representations
+    #     if is_windows:
+    #         # Windows specific logic (\r\n)
+    #         if end >= 1 and text[end] == '\n' and text[end-1] == '\r':
+    #             end -= 2
+    #     else:
+    #         # Unix-like systems (\n)
+    #         if end >= 0 and text[end] == '\n':
+    #             end -= 1
+
+    #     if end < 0:
+    #         return
+
+    #     start = end - 1
+    #     while start >= 0 and not text[start].isspace():
+    #         start -= 1
+
+    #     if start < 0 or text[start].isspace():
+    #         start += 1
+    #         newText = self.autocorr.FindReplace(text[start:end+1])
+    #         if newText != text[start:end+1]:
+    #             self.Replace(start, end+1, newText)
+
+    #     event.Skip()
     def OnText(self, event):
-        text = self.GetValue()
-        if len(text) == 0:
-            return
+        if is_windows:
+            text = self.GetValue()
+            text = text.replace('\n', '\r\n')  # Replace '\n' with '\r\n' for Windows
 
-        end = self.GetInsertionPoint()-1
-        start = end-1
-        if text[end].isspace():
-            while start >= 0 and not text[start].isspace():
-                start -= 1
+            if len(text) == 0:
+                return
 
-            if start < 0 or text[start].isspace():
-                start += 1
-                #print text[start:end+1]
-                newText = self.autocorr.FindReplace(text[start:end+1])
-                if newText != text[start:end+1]:
-                    self.Replace(start, end+1, newText)
-    
+            end = self.GetInsertionPoint()-1
+
+            # Adjust for Windows-style newlines if at the end of a line
+            if end > 0 and text[end - 1] == '\n':
+                end -= 1
+
+            start = end-1
+            if text[end].isspace():
+                while start >= 0 and not text[start].isspace():
+                    start -= 1
+
+                if start < 0 or text[start].isspace():
+                    start += 1
+                    #print text[start:end+1]
+                    newText = self.autocorr.FindReplace(text[start:end+1])
+                    if newText != text[start:end+1]:
+                        self.Replace(start, end+1, newText)
+        else:
+            text = self.GetValue()
+            if len(text) == 0:
+                return
+
+            len_text = len(text)
+            end = self.GetInsertionPoint()-1
+            start = end-1
+
+            if text[end].isspace():
+                while start >= 0 and not text[start].isspace():
+                    start -= 1
+
+                if start < 0 or text[start].isspace():
+                    start += 1
+                    #print text[start:end+1]
+                    newText = self.autocorr.FindReplace(text[start:end+1])
+                    if newText != text[start:end+1]:
+                        self.Replace(start, end+1, newText)
+
+        event.Skip()
+
     def OnKeyDown(self, event):
         keycode = event.GetKeyCode()
 
