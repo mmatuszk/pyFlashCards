@@ -70,7 +70,7 @@ class FlashCardDataDispFrame(wx.Frame):
         self.SetSize((600,600))
 
     def Update(self):
-        print 'Update data display'
+        print('Update data display')
         self.UpdateChapters()
         self.UpdateAvailableChapters()
         self.UpdateSelectedChapters()
@@ -134,5 +134,5 @@ class FlashCardDataDispFrame(wx.Frame):
     def OnClose(self, event):
         evt = events.WindowClosedEvent(events.myEVT_WINDOW_CLOSED, self.GetId())
         self.GetEventHandler().ProcessEvent(evt)
-        print "Sending event"
+        print("Sending event")
         self.Destroy()
