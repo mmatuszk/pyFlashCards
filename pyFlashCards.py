@@ -56,50 +56,50 @@ import events
 import ImportWizard as iw
 import ExportWizard as ew
 
-ID_FLASH_CARD_FRAME             = wx.NewId()
+ID_FLASH_CARD_FRAME             = wx.Window.NewControlId()
 
-ID_FILE_NEW                     = wx.NewId()
-ID_FILE_OPEN                    = wx.NewId()
-ID_FILE_RECENT_DOCS             = wx.NewId()
-ID_FILE_CLOSE                   = wx.NewId()
-ID_FILE_IMPORT                  = wx.NewId()
-ID_FILE_EXPORT                  = wx.NewId()
-ID_FILE_SAVE                    = wx.NewId()
-ID_FILE_SAVE_AS                 = wx.NewId()
-ID_FILE_EXIT                    = wx.NewId()
+ID_FILE_NEW                     = wx.Window.NewControlId()
+ID_FILE_OPEN                    = wx.Window.NewControlId()
+ID_FILE_RECENT_DOCS             = wx.Window.NewControlId()
+ID_FILE_CLOSE                   = wx.Window.NewControlId()
+ID_FILE_IMPORT                  = wx.Window.NewControlId()
+ID_FILE_EXPORT                  = wx.Window.NewControlId()
+ID_FILE_SAVE                    = wx.Window.NewControlId()
+ID_FILE_SAVE_AS                 = wx.Window.NewControlId()
+ID_FILE_EXIT                    = wx.Window.NewControlId()
 
-ID_CARDS_CARD_MANAGER           = wx.NewId()
-ID_CARDS_CARD_BROWSER           = wx.NewId()
-ID_CARDS_EDIT_TEST_CARD         = wx.NewId()
-ID_CARDS_CHAPTER_MANAGER        = wx.NewId()
+ID_CARDS_CARD_MANAGER           = wx.Window.NewControlId()
+ID_CARDS_CARD_BROWSER           = wx.Window.NewControlId()
+ID_CARDS_EDIT_TEST_CARD         = wx.Window.NewControlId()
+ID_CARDS_CHAPTER_MANAGER        = wx.Window.NewControlId()
 
-ID_LEARNING_LEARNING_MANAGER    = wx.NewId()
-ID_LEARNING_BOX_MANAGER         = wx.NewId()
-ID_LEARNING_RANDOMIZE           = wx.NewId()
+ID_LEARNING_LEARNING_MANAGER    = wx.Window.NewControlId()
+ID_LEARNING_BOX_MANAGER         = wx.Window.NewControlId()
+ID_LEARNING_RANDOMIZE           = wx.Window.NewControlId()
 
-ID_TOOLS_VIEW_CH_HTML           = wx.NewId()
-ID_TOOLS_VIEW_ANS               = wx.NewId()
-ID_TOOLS_DISP_DATA              = wx.NewId()
+ID_TOOLS_VIEW_CH_HTML           = wx.Window.NewControlId()
+ID_TOOLS_VIEW_ANS               = wx.Window.NewControlId()
+ID_TOOLS_DISP_DATA              = wx.Window.NewControlId()
 
-ID_HELP_CONTENTS                = wx.NewId()
-ID_HELP_ABOUT                   = wx.NewId()
+ID_HELP_CONTENTS                = wx.Window.NewControlId()
+ID_HELP_ABOUT                   = wx.Window.NewControlId()
 
-ID_LEARN_SHOW_ANSWER            = wx.NewId()
-ID_LEARN_KNOW                   = wx.NewId()
-ID_LEARN_NOT_KNOW               = wx.NewId()
-ID_LEARN_NOT_AGAIN	            = wx.NewId()
-ID_LEARN_HIDE_ANSWER            = wx.NewId()
+ID_LEARN_SHOW_ANSWER            = wx.Window.NewControlId()
+ID_LEARN_KNOW                   = wx.Window.NewControlId()
+ID_LEARN_NOT_KNOW               = wx.Window.NewControlId()
+ID_LEARN_NOT_AGAIN	            = wx.Window.NewControlId()
+ID_LEARN_HIDE_ANSWER            = wx.Window.NewControlId()
 
-ID_TEST_PANEL                   = wx.NewId()
+ID_TEST_PANEL                   = wx.Window.NewControlId()
 
 ID_TEST_PANEL_STATE_SHOW_NONE       = 0
 ID_TEST_PANEL_STATE_SHOW_QUESTION   = 1
 ID_TEST_PANEL_STATE_SHOW_ANSWER     = 2
 
-ID_TP_FRONT_FONT_FACE   = wx.NewId()
-ID_TP_FRONT_FONT_SIZE   = wx.NewId()
-ID_TP_BACK_FONT_FACE    = wx.NewId()
-ID_TP_BACK_FONT_SIZE    = wx.NewId()
+ID_TP_FRONT_FONT_FACE   = wx.Window.NewControlId()
+ID_TP_FRONT_FONT_SIZE   = wx.Window.NewControlId()
+ID_TP_BACK_FONT_FACE    = wx.Window.NewControlId()
+ID_TP_BACK_FONT_SIZE    = wx.Window.NewControlId()
 
 defext = 'ofc'
 wildcard = 'Flash Card files (*.%s)|*.%s' % (defext, defext)
@@ -129,13 +129,13 @@ TestHtml=\
 EmptyHtml="<html></html>"
 
 def AddMenuItemWithImage(menu, id, item, helpString, image):
-    if type(image) == types.StringType:
+    if isinstance(image, str):
         img = wx.Image(image, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
     else:
         img = image
     item = wx.MenuItem(menu, id, item, helpString)
     item.SetBitmap(img)
-    menu.AppendItem(item)
+    menu.Append(item)  # Updated to use Append instead of AppendItem
 
 
 myEVT_LP_DATA_CHANGED = wx.NewEventType()
@@ -1501,7 +1501,7 @@ if __name__ == '__main__':
         toopen = os.path.abspath(sys.argv[1])
 
     #print os.getcwd()
-    app = wx.PySimpleApp()
+    app = wx.App(False) 
     wx.GetApp().SetAppName('pyFlashCards')
     CheckUserDataDir()
     # Create help manager
