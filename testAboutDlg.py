@@ -1,13 +1,17 @@
 import wx
+import os
 from AboutDlg import AboutDlg
 
 class TestApp(wx.App):
     def OnInit(self):
+        # Get the current working directory
+        runtimepath = os.getcwd()
+
         # Create the main window
         frame = wx.Frame(None, -1, 'Test')
 
-        # Create an instance of the About Dialog
-        dlg = AboutDlg(frame)
+        # Create an instance of the About Dialog with runtimepath
+        dlg = AboutDlg(frame, runtimepath)
 
         # Show the dialog
         dlg.ShowModal()

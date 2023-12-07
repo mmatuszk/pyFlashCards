@@ -26,6 +26,7 @@
 import wx
 import wx.html as html
 import configparser
+import os
 
 ID_ABOUT_DLG = wx.Window.NewControlId()
 
@@ -46,13 +47,17 @@ to redistribute it under certain conditions.
 """
 
 class AboutDlg(wx.Dialog):
-    def __init__(self, parent):
+    def __init__(self, parent, runtimepath):
         wx.Dialog.__init__(self, parent, ID_ABOUT_DLG, 'About pyFlashCards')
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Ensure the image path is correct and file exists
-        img = wx.Image('icons/pyFlashCards2.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        # Construct the full path to the image
+        imagePath = os.path.join(runtimepath, 'icons', 'pyFlashCards2.png')
+        imagePath = os.path.normpath(imagePath)
+
+        img = wx.Image(imagePath, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         logo = wx.StaticBitmap(self, -1, img)
 
         title = wx.StaticText(self, -1, 'pyFlashCards %d.%d.%d' % self.GetVersion())
