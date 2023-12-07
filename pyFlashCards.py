@@ -299,16 +299,16 @@ class FlashCardFrame(wx.Frame):
         # File menu
         #-----------------------------------------------------------------------
         FileMenu = wx.Menu()
-        new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_MENU)
-        AddMenuItemWithImage(FileMenu, ID_FILE_NEW, '&New\tCtrl+N',
-                             'Create a new card file',
-                             new_bmp)
-        open_bmp =  wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_MENU)
-        AddMenuItemWithImage(FileMenu, ID_FILE_OPEN, '&Open\tCtrl+O',
-                             'Open an existing card file',
-                              open_bmp)
+        new_bmp = wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_MENU)
+        AddMenuItemWithImage(FileMenu, ID_FILE_NEW, '&New\tCtrl+N', 'Create a new card file', new_bmp)
+
+        open_bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_MENU)
+        AddMenuItemWithImage(FileMenu, ID_FILE_OPEN, '&Open\tCtrl+O', 'Open an existing card file', open_bmp)
+
+        # Adding the Recent Documents submenu
         RecentDocsMenu = wx.Menu()
-        FileMenu.AppendMenu(ID_FILE_RECENT_DOCS, "Recent Documents", RecentDocsMenu)
+        FileMenu.AppendSubMenu(RecentDocsMenu, "Recent Documents")
+
         FileMenu.Append(ID_FILE_CLOSE, 'Close', 'Close the card file\tCtrl+W')
         FileMenu.Enable(ID_FILE_CLOSE, False)
         FileMenu.AppendSeparator()
@@ -317,24 +317,22 @@ class FlashCardFrame(wx.Frame):
         FileMenu.Append(ID_FILE_EXPORT, 'Export\tCtrl+X', 'Export a card file')
         FileMenu.Enable(ID_FILE_EXPORT, False)
         FileMenu.AppendSeparator()
-        save_bmp =  wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_MENU)
-        AddMenuItemWithImage(FileMenu, ID_FILE_SAVE, '&Save\tCtrl+S',
-                             'Save the card file',
-                              save_bmp)
+
+        save_bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_MENU)
+        AddMenuItemWithImage(FileMenu, ID_FILE_SAVE, '&Save\tCtrl+S', 'Save the card file', save_bmp)
         FileMenu.Enable(ID_FILE_SAVE, False)
-        save_as_bmp =  wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE_AS, wx.ART_MENU)
-        AddMenuItemWithImage(FileMenu, ID_FILE_SAVE_AS, 'S&ave as',
-                             'Save file unde a new name',
-                              save_as_bmp)
+
+        save_as_bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE_AS, wx.ART_MENU)
+        AddMenuItemWithImage(FileMenu, ID_FILE_SAVE_AS, 'S&ave as', 'Save file under a new name', save_as_bmp)
         FileMenu.AppendSeparator()
         FileMenu.Append(ID_FILE_EXIT, 'E&xit', 'Exit program')
         FileMenu.Enable(ID_FILE_SAVE_AS, False)
-
 
         # Add File History
         self.FileHistory = wx.FileHistory()
         self.FileHistory.UseMenu(RecentDocsMenu)
 
+         # Bindings for File menu
         self.Bind(wx.EVT_MENU, self.OnNew, id=ID_FILE_NEW)
         self.Bind(wx.EVT_MENU, self.OnSave, id=ID_FILE_SAVE)
         self.Bind(wx.EVT_MENU, self.OnSaveAs, id=ID_FILE_SAVE_AS)
@@ -479,7 +477,7 @@ class FlashCardFrame(wx.Frame):
         else:
             dir = self.Config.get('directories', 'card_dir')
             dlg = wx.FileDialog(self, message='Save as ...', defaultDir = dir, 
-                        defaultFile='', wildcard=wildcard, style=wx.SAVE)
+                        defaultFile='', wildcard=wildcard, style=wx.FD_SAVE)
 
             if dlg.ShowModal() == wx.ID_OK:
                 filename =  dlg.GetPaths()[0]
@@ -522,7 +520,7 @@ class FlashCardFrame(wx.Frame):
     def SaveAs(self):
         dir = self.Config.get('directories', 'card_dir')
         dlg = wx.FileDialog(self, message='Save as ...', defaultDir = dir, 
-                    defaultFile='', wildcard=wildcard, style=wx.SAVE)
+                    defaultFile='', wildcard=wildcard, style=wx.FD_SAVE)
 
         if dlg.ShowModal() == wx.ID_OK:
             filename =  dlg.GetPaths()[0]
@@ -555,7 +553,7 @@ class FlashCardFrame(wx.Frame):
         dlg.Destroy()
 
     def AddFileToHistory(self):
-        if self.filename != '':
+        if self.filename and isinstance(self.filename, str):
             self.FileHistory.AddFileToHistory(self.filename)
 
     def SaveFileHistory(self):
@@ -629,7 +627,7 @@ class FlashCardFrame(wx.Frame):
 
         if not self.CardSet:
             dlg = wx.FileDialog(self, message='Choose a file', defaultDir = dir, 
-                        defaultFile='', wildcard=wildcard, style=wx.OPEN)
+                        defaultFile='', wildcard=wildcard, style=wx.FD_OPEN)
 
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPaths()[0]
@@ -1505,7 +1503,7 @@ if __name__ == '__main__':
     wx.GetApp().SetAppName('pyFlashCards')
     CheckUserDataDir()
     # Create help manager
-    wx.FileSystem.AddHandler(wx.ZipFSHandler())
+    wx.FileSystem.AddHandler(wx.ArchiveFSHandler())
     help = wx.html.HtmlHelpController()
     sp = wx.StandardPaths.Get()
     UserDataDir = sp.GetUserDataDir()
