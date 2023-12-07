@@ -650,7 +650,7 @@ class FlashCardFrame(wx.Frame):
                 dlg.Destroy()
 
             dlg = wx.FileDialog(self, message='Choose a file', defaultDir = dir, 
-                        defaultFile='', wildcard=wildcard, style=wx.OPEN)
+                        defaultFile='', wildcard=wildcard, style=wx.FD_OPEN)
 
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPaths()[0]
@@ -996,7 +996,7 @@ class FlashCardFrame(wx.Frame):
 
     #-----------------------------------------------------------------------------------
     # The functions below are utilities functions to help develop the program.  They
-    # have no use in publicly released software.  They all start with Util
+    # have no use in publicly released software.  They all start with   
     #-----------------------------------------------------------------------------------
     def UtilOpenTestFile(self):
         self.filename = os.path.join(self.runtimepath, 'test/file1.ofc')
