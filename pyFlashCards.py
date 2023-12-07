@@ -1054,6 +1054,9 @@ class TestPanel(wx.Panel):
 
         sizer.Add(splitter, 1, wx.EXPAND)
 
+        # Bind to the size event of the SplitterWindow
+        splitter.Bind(wx.EVT_SIZE, self.OnSplitterResize)        
+
         # New line in the GUI
         sizer1 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -1473,6 +1476,15 @@ class TestPanel(wx.Panel):
         size = int(event.GetString())
         self.CardSet.SetBackFontSize(size)
         self.UpdateBackDisp()
+
+    def OnSplitterResize(self, event):
+        splitter = event.GetEventObject()
+        size = splitter.GetSize()
+        newSashPosition = size.width // 2  # Change to size.height // 2 for horizontal split
+        splitter.SetSashPosition(newSashPosition)
+
+        # This line is important to ensure that the size event is not blocked
+        event.Skip()        
 
 # Function checks if the user data directory exists. If it does not, it creates a new one.
 def CheckUserDataDir():
