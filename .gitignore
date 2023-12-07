@@ -108,6 +108,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Project virtual enviroment
+myenv/
+
 # Project specific test files
 test.xml
 test_autocorr_save.xml
