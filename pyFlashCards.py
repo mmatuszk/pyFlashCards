@@ -991,7 +991,7 @@ class FlashCardFrame(wx.Frame):
         help.DisplayContents()
 
     def OnAbout(self, event):
-        dlg = AboutDlg.AboutDlg(self)
+        dlg = AboutDlg.AboutDlg(self, self.runtimepath)
         dlg.ShowModal()
 
     #-----------------------------------------------------------------------------------
