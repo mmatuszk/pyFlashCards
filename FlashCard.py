@@ -24,6 +24,7 @@
 #-------------------------------------------------------------------------------
 
 import fileinput, codecs, os, copy, sys, shutil, tempfile
+from pathlib import Path
 import shutil
 import XMLDoc
 import xml.dom.minidom
@@ -1650,11 +1651,18 @@ class FlashCardSet:
         return count
 
     def ExportXML(self, filename, chapter):
-        # Make a directory for images
-        root, ext = os.path.splitext(filename)
-        imagedir = root+'_files'
-        shutil.rmtree(imagedir, True)
-        os.mkdir(imagedir)
+        # Ensure filename is a string, not bytes
+        if isinstance(filename, bytes):
+            filename = filename.decode('utf-8') 
+                   
+        # Create a Path object from the filename
+        file_path = Path(filename)
+
+        # Create the directory for images
+        imagedir = file_path.with_suffix('') / (file_path.stem + '_files')
+        if imagedir.exists():
+            shutil.rmtree(imagedir)
+        imagedir.mkdir(parents=True, exist_ok=True)
 
         ct = 0
         doc = XMLDoc.XMLDocument()
@@ -1670,7 +1678,7 @@ class FlashCardSet:
             ExpCard = card.Copy()
             # Copy front image
             srcimg = card.GetFrontImage()
-            if srcimg:
+            if srcimg is not None:
                 # src image is 'tmp1/imagename'
                 # dir = tmp1
                 # fn = imagename
@@ -1682,7 +1690,7 @@ class FlashCardSet:
                 ExpCard.SetFrontImage(relimg)
             # Copy back image
             srcimg = card.GetBackImage()
-            if srcimg:
+            if srcimg is not None:
                 # src image is 'tmp1/imagename'
                 # dir = tmp1
                 # fn = imagename

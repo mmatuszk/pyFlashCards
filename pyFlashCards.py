@@ -996,7 +996,7 @@ class FlashCardFrame(wx.Frame):
 
     #-----------------------------------------------------------------------------------
     # The functions below are utilities functions to help develop the program.  They
-    # have no use in publicly released software.  They all start with Util
+    # have no use in publicly released software.  They all start with   
     #-----------------------------------------------------------------------------------
     def UtilOpenTestFile(self):
         self.filename = os.path.join(self.runtimepath, 'test/file1.ofc')
