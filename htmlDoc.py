@@ -168,7 +168,7 @@ class HtmlElement (HtmlContents):
         self.setContents (someContents)
 
     def append (self, anItem):
-        if type (anItem) == types.StringType or type(anItem) == types.UnicodeType:
+        if isinstance(anItem, str):
             self.contents.append (HtmlText (anItem))
         elif type (anItem) == types.ListType:
             self.appendListContents (anItem)
@@ -211,17 +211,16 @@ class HtmlElement (HtmlContents):
         for element in self.contents:
             element.writeToHtml (outfile)
 
-    def writeToHtml (self, outfile):
-        self.writeStartTag (outfile)
-        self.writeContents (outfile)
-        if self.needEndTag:
-            outfile.write ("</%s>" % self.tag)
-        if self.tagEndsLine:
-            outfile.writeNewline ()
-
-    def setFormValues (self, valueDict):
-        for element in self.contents:
-            element.setFormValues (valueDict)
+    def writeToHtml(self, outfile, values):
+        if self.name in values:
+            value = values[self.name]
+            outfile.writeSpace()
+            outfile.writeAsIs(self.name)
+            if value is not None:
+                if self.needQuotes:
+                    outfile.writeAsIs('="%s"' % value)
+                else:
+                    outfile.writeAsIs('=%s' % value)
 
 
 # Class of preformatted HTML elements
