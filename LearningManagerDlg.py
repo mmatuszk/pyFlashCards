@@ -101,19 +101,22 @@ class LearningManagerDlg(wx.Dialog):
             self._init_ctrls(parent)
 
 
-            # Add columns to the chapters list controls
+            # Add columns to the Available Chapters list control
             ListWidth = self.AvailableChaptersListCtrl.GetSize()[0]
 
             self.AvailableChaptersListCtrl.InsertColumn(0, 'Chapter',
-                                                      width=ListWidth*0.8-2)
+                                                      width=int(ListWidth * 0.8 - 2))
             self.AvailableChaptersListCtrl.InsertColumn(1, 'Cards',
-                                                      width=ListWidth*0.2-2)
+                                                      width=int(ListWidth * 0.2 - 2))
+
+            # Add columns to the Selected Chapters list control
             ListWidth = self.SelectedChaptersListCtrl.GetSize()[0]
 
             self.SelectedChaptersListCtrl.InsertColumn(0, 'Chapter',
-                                                      width=ListWidth*0.8-2)
+                                                      width=int(ListWidth * 0.8 - 2))
             self.SelectedChaptersListCtrl.InsertColumn(1, 'Cards',
-                                                      width=ListWidth*0.2-2)
+                                                      width=int(ListWidth * 0.2 - 2))
+
 
             # Populate available chapters list control
             for chapter in self.CardSet.GetAvailableChapters():
