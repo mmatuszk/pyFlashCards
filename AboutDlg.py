@@ -50,6 +50,9 @@ class AboutDlg(wx.Dialog):
     def __init__(self, parent, runtimepath):
         wx.Dialog.__init__(self, parent, ID_ABOUT_DLG, 'About pyFlashCards')
 
+        # Store the runtimepath in the instance for later use
+        self.runtimepath = runtimepath
+
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Ensure the image path is correct and file exists
@@ -79,7 +82,12 @@ class AboutDlg(wx.Dialog):
 
     def GetVersion(self):
         config = configparser.ConfigParser()
-        config.read(revcfg_filename)
+
+        # Construct the full path to the rev.cfg file
+        revcfg_fullpath = os.path.join(self.runtimepath, revcfg_filename)
+        revcfg_fullpath = os.path.normpath(revcfg_fullpath)
+
+        config.read(revcfg_fullpath)
 
         # Parse configuration file
         try:
