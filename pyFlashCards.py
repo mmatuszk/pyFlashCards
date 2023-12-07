@@ -650,7 +650,7 @@ class FlashCardFrame(wx.Frame):
                 dlg.Destroy()
 
             dlg = wx.FileDialog(self, message='Choose a file', defaultDir = dir, 
-                        defaultFile='', wildcard=wildcard, style=wx.OPEN)
+                        defaultFile='', wildcard=wildcard, style=wx.FD_OPEN)
 
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPaths()[0]
