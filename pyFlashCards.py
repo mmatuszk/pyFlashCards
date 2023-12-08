@@ -1423,7 +1423,7 @@ class TestPanel(wx.Panel):
 
     def OnChar(self, event):
         keycode = event.GetKeyCode()
-        #print 'TestPanel: OnChar %d' % keycode
+        print('TestPanel: OnChar %d' % keycode)
 
         if self.State is ID_TEST_PANEL_STATE_SHOW_NONE:
             # Nothing to do

@@ -32,9 +32,9 @@ import wx
 
 import FlashCard
 
-ID_BOX_MANAGER_DLG = wx.Window.NewControlId()
+ID_BOX_MANAGER_DLG = wx.ID_ANY
 
-ID_BM_BOX_MAX_TEXT = [wx.Window.NewControlId() for x in range(FlashCard.BoxNum)]
+ID_BM_BOX_MAX_TEXT = [wx.ID_ANY for x in range(FlashCard.BoxNum)]
 
 class BoxManagerDlg(wx.Dialog):
     def __init__(self, parent, CardSet):
