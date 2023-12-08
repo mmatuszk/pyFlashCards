@@ -26,7 +26,8 @@ import wx
 import wx.adv
 import os
 
-ID_IW_FILE_PAGE_BROWSE = wx.Window.NewControlId()
+#ID_IW_FILE_PAGE_BROWSE = wx.Window.NewControlId()
+ID_IW_FILE_PAGE_BROWSE = wx.ID_ANY
 
 class ImportTypePage(wx.adv.WizardPageSimple):
     def __init__(self, parent, types):
