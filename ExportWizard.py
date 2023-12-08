@@ -70,8 +70,8 @@ class FilePage(wx.adv.WizardPageSimple):
         label = wx.StaticText(self, -1, 'File: ')
         self.FileTextCtrl = wx.TextCtrl(self, -1, style=wx.TE_READONLY)
 
-        sizer1.Add(label, 0, wx.RIGHT | wx.ALIGN_CENTER, 5)
-        sizer1.Add(self.FileTextCtrl, 1, wx.RIGHT | wx.ALIGN_CENTER | wx.EXPAND, 10)
+        sizer1.Add(label, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        sizer1.Add(self.FileTextCtrl, 1, wx.EXPAND, 10)
 
         sizer.Add(sizer1, 0, wx.BOTTOM | wx.EXPAND, 10)
 
