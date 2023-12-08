@@ -1,5 +1,6 @@
 #-------------------------------------------------------------------------------
 # Author:   Marcin Matuszkiewicz
+# File:     FlashCard.py
 #-------------------------------------------------------------------------------
 # pyFlashCards is a multiplatform flash cards software.
 # Copyright (C) 2006  Marcin Matuszkiewicz
@@ -1710,19 +1711,9 @@ class FlashCardSet:
             ct += 1
 
         # Write the document to file
-        # f = codecs.open(filename, 'w', 'utf_8')
-        # doc.writexml(f)
-        # f.close()
-
-        # Write the document to file
-        xml_str = doc.toxml()  # Assuming XMLDoc.XMLDocument has a method to convert to XML string
-        dom = xml.dom.minidom.parseString(xml_str)  # Parse the XML string
-
-        # Pretty print with specified indentation
-        pretty_xml_as_string = dom.toprettyxml(indent="    ")  # Use 4 spaces for indentation
-
-        with codecs.open(filename, 'w', 'utf_8') as f:
-            f.write(pretty_xml_as_string)
+        f = codecs.open(filename, 'w', 'utf_8')
+        doc.writexml(f)
+        f.close()
 
         return ct
 
