@@ -759,7 +759,7 @@ class FlashCardFrame(wx.Frame):
             ImportChapter = page3.GetData()
             if os.path.exists(ImportFile):
                 self.Config.set('directories', 'import_dir', os.path.dirname(ImportFile))
-                n = self.CardSet.Import(ImportType, ImportFile.encode('utf-8'), ImportChapter)
+                n = self.CardSet.Import(ImportType, ImportFile, ImportChapter)
                 dlg = wx.MessageDialog(self, "%d cards imported" % n, "Import result", wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -792,7 +792,7 @@ class FlashCardFrame(wx.Frame):
             ExportFile = page3.GetData()
             if ExportFile:
                 self.Config.set('directories', 'export_dir', os.path.dirname(ExportFile))
-                n = self.CardSet.Export(ExportType, ExportFile.encode('utf-8'), ExportChapter)
+                n = self.CardSet.Export(ExportType, ExportFile, ExportChapter)
                 dlg = wx.MessageDialog(self, "%d cards exported" % n, "Export result", wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
