@@ -107,8 +107,8 @@ class ChapterManagerDlg(wx.Dialog):
         self.OldChapterTitle = ''
 
         width = self.ChapterListCtrl.GetSize()[0]-4
-        self.ChapterListCtrl.InsertColumn(0, "Chapter", width = width*0.35)
-        self.ChapterListCtrl.InsertColumn(1, "Title", width = width*0.6)
+        self.ChapterListCtrl.InsertColumn(0, "Chapter", width = int(width*0.35))
+        self.ChapterListCtrl.InsertColumn(1, "Title", width = int(width*0.6))
 
         self.AddChapters2List(self.CardSet.GetChapters())
 
