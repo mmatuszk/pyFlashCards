@@ -1,5 +1,6 @@
 #-------------------------------------------------------------------------------
 # Author:   Marcin Matuszkiewicz
+# File:     FlashCardDataDisp.py
 #-------------------------------------------------------------------------------
 # pyFlashCards is a multiplatform flash cards software.
 # Copyright (C) 2006  Marcin Matuszkiewicz
@@ -81,9 +82,10 @@ class FlashCardDataDispFrame(wx.Frame):
         size = self.GetClientSize()
         self.tree.SetSize(size)
         width = size[0]
-        self.tree.SetColumnWidth(0, width/3)
-        self.tree.SetColumnWidth(1, width/3)
-        self.tree.SetColumnWidth(2, width/3)
+        self.tree.SetColumnWidth(0, int(width/3))
+        self.tree.SetColumnWidth(1, int(width/3))
+        self.tree.SetColumnWidth(2, int(width/3))
+
 
     def UpdateChapters(self):
         self.tree.DeleteChildren(self.Chapters)
