@@ -1149,7 +1149,7 @@ class TestPanel(wx.Panel):
         self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
         self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
-        self.Bind(wx.EVT_CHAR, self.OnChar)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)   
         self.FrontFontFaceChoice.Bind(wx.EVT_CHOICE, self.OnFrontFontFaceChoice,
                 id=ID_TP_FRONT_FONT_FACE)
         self.FrontFontSizeChoice.Bind(wx.EVT_CHOICE, self.OnFrontFontSizeChoice,
@@ -1421,9 +1421,9 @@ class TestPanel(wx.Panel):
     def SetCardSet(self, CardSet):
         self.CardSet = CardSet
 
-    def OnChar(self, event):
+    def OnKeyDown(self, event):  
         keycode = event.GetKeyCode()
-        print('TestPanel: OnChar %d' % keycode)
+        print('TestPanel: OnKeyDown %d' % keycode)
 
         if self.State is ID_TEST_PANEL_STATE_SHOW_NONE:
             # Nothing to do
@@ -1444,14 +1444,14 @@ class TestPanel(wx.Panel):
         event.Skip()
 
     def OnSetFocus(self, event):
-        #print 'TestPanel: Got focus'
+        print('TestPanel: Got focus')
         event.Skip()
 
     def OnKillFocus(self, event):
-        #print 'TestPanel: Lost focus'
-        #win  = event.GetWindow()
-        #if win:
-        #    print win.GetName()
+        print('TestPanel: Lost focus')
+        win  = event.GetWindow()
+        if win:
+           print(win.GetName())
         event.Skip()
 
     def OnLeftDown(self, event):
