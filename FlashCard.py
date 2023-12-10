@@ -1656,6 +1656,39 @@ class FlashCardSet:
 
         return count
 
+    def ImportCSV(self, filename, colmap, header=True, create_chapter=True):
+        count = 0
+
+        with open(filename, mode='r', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile)
+
+            if header:
+                next(reader)  # Skip the header row
+
+            for row in reader:
+                # Check and create chapter if necessary
+                chapter = row[colmap['chapter']] if 'chapter' in colmap and colmap['chapter'] is not None else None
+                if chapter and chapter not in self.GetChapters():
+                    if create_chapter:
+                        self.AddChapter(chapter)
+                    else:
+                        raise FlashCardError(f"Chapter '{chapter}' does not exist and 'create_chapter' is set to False")
+
+                # Extract card data based on colmap, ignoring columns set to None
+                frontText = row[colmap['front']] if 'front' in colmap and colmap['front'] is not None else ''
+                backText = row[colmap['back']] if 'back' in colmap and colmap['back'] is not None else ''
+                frontImage = row[colmap['front image']] if 'front image' in colmap and colmap['front image'] is not None else ''
+                backImage = row[colmap['back image']] if 'back image' in colmap and colmap['back image'] is not None else ''
+
+                card = FlashCard(frontText, backText)
+                card.SetFrontImage(frontImage)
+                card.SetBackImage(backImage)
+                # For now, ignoring the chapter column during card addition
+                if chapter:
+                    self.AddCard(chapter, card)
+                count += 1
+
+        return count
 
     def process_and_copy_image(self, image_path, destination_dir):
         if image_path:
@@ -1731,7 +1764,7 @@ class FlashCardSet:
 
         return ct
     
-    def ExportCSV(self, filename, chapter, header=True):
+    def ExportCSV(self, filename, chapters, delimiter=",", header=True):
         # Create a directory for images
         file_path = Path(filename)
         imagedir = file_path.with_suffix('').with_name(file_path.stem + '_files')
@@ -1739,25 +1772,59 @@ class FlashCardSet:
             shutil.rmtree(imagedir)
         imagedir.mkdir(parents=True, exist_ok=True)
 
-        with open(filename, mode='w', newline='', encoding='utf-8') as file:
+        total_cards = 0
+
+        with open(filename, mode='w', newline='', encoding='utf-8-sig') as file:
+            writer = csv.writer(file, delimiter=delimiter)
+
+            # Write header if required
+            if header:
+                writer.writerow(['front', 'front image', 'back', 'back image', 'chapter'])
+
+            # Write card data for each chapter
+            for chapter in chapters:
+                if chapter in self.Cards:
+                    for card in self.Cards[chapter]:
+                        front_text = card.GetFrontText()
+                        back_text = card.GetBackText()
+
+                        # Process and copy images
+                        front_image_path = self.process_and_copy_image(card.GetFrontImage(), imagedir)
+                        back_image_path = self.process_and_copy_image(card.GetBackImage(), imagedir)
+
+                        writer.writerow([front_text, front_image_path, back_text, back_image_path, chapter])
+                        total_cards += 1
+
+        return total_cards
+    
+    def ExportCSVAllChapters(self, filename, header=True):
+        # Create a directory for images
+        file_path = Path(filename)
+        imagedir = file_path.with_suffix('').with_name(file_path.stem + '_files')
+        if imagedir.exists():
+            shutil.rmtree(imagedir)
+        imagedir.mkdir(parents=True, exist_ok=True)
+
+        with open(filename, mode='w', newline='', encoding='utf-8-sig') as file:
             writer = csv.writer(file)
 
             # Write header if required
             if header:
                 writer.writerow(['front', 'front image', 'back', 'back image', 'chapter'])
 
-            # Write card data
-            for card in self.Cards[chapter]:
-                front_text = card.GetFrontText()
-                back_text = card.GetBackText()
+            # Write card data for all chapters
+            for chapter in self.GetChapters():
+                for card in self.Cards[chapter]:
+                    front_text = card.GetFrontText()
+                    back_text = card.GetBackText()
 
-                # Process and copy images
-                front_image_path = self.process_and_copy_image(card.GetFrontImage(), imagedir)
-                back_image_path = self.process_and_copy_image(card.GetBackImage(), imagedir)
+                    # Process and copy images
+                    front_image_path = self.process_and_copy_image(card.GetFrontImage(), imagedir)
+                    back_image_path = self.process_and_copy_image(card.GetBackImage(), imagedir)
 
-                writer.writerow([front_text, front_image_path, back_text, back_image_path, chapter])
+                    writer.writerow([front_text, front_image_path, back_text, back_image_path, chapter])
 
-        return len(self.Cards[chapter])
+        return sum(len(self.Cards[chapter]) for chapter in self.GetChapters())    
 
     def ExportHTML(self, filename, chapter):
         # Make a directory for images
