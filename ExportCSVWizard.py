@@ -14,11 +14,36 @@ class ChapterSelectionPage(wx.adv.WizardPageSimple):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.checkList = wx.CheckListBox(self, choices=chapters)
+        
+        # Buttons for selecting/deselecting all chapters
+        buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.selectAllButton = wx.Button(self, label="Select All")
+        self.deselectAllButton = wx.Button(self, label="Deselect All")
+        
+        # Bind events to buttons
+        self.selectAllButton.Bind(wx.EVT_BUTTON, self.OnSelectAll)
+        self.deselectAllButton.Bind(wx.EVT_BUTTON, self.OnDeselectAll)
+        
+        # Add buttons to buttonSizer
+        buttonSizer.Add(self.selectAllButton, 0, wx.RIGHT, 5)
+        buttonSizer.Add(self.deselectAllButton, 0)
+        
+        # Add to main sizer
         sizer.Add(self.checkList, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(buttonSizer, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
         self.SetSizer(sizer)
 
     def GetSelectedChapters(self):
-        return [self.checkList.GetString(idx) for idx in self.checkList.GetChecked()]
+        return [self.checkList.GetString(idx) for idx in self.checkList.GetCheckedItems()]
+
+    def OnSelectAll(self, event):
+        for i in range(self.checkList.GetCount()):
+            self.checkList.Check(i)
+
+    def OnDeselectAll(self, event):
+        for i in range(self.checkList.GetCount()):
+            self.checkList.Check(i, check=False)
+
 
 class DelimiterSelectionPage(wx.adv.WizardPageSimple):
     def __init__(self, parent):
