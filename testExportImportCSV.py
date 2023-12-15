@@ -16,17 +16,12 @@ set = FlashCard.FlashCardSet()
 set.Load(file)
 
 # Export one chapter to CSV
-chapter = set.GetChapterName(5)
+chapters = []
+chapters.append(set.GetChapterName(5))
 # Assuming the column mapping for your CSV format
-colmap = {
-    'front': 0,
-    'front image': 1,
-    'back': 2,
-    'back image': 3,
-    'chapter': 4  # Assuming no chapter column in the exported CSV
-}
-# set.ExportCSV(csvfile, chapter, header=True)
-set.ExportCSVAllChapters(csvfile, header=True)
+colmap = FlashCard.CSVMap
+set.ExportCSV(csvfile, chapters, header=True)
+# set.ExportCSVAllChapters(csvfile, header=True)
 
 # Close the current set
 set.Close()
