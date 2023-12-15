@@ -47,6 +47,13 @@ ExportWildcard  = ['XML files (*.xml)|*.xml', 'HTML files (*.html)|*.html']
 ExportExt       = ['xml', 'html']
 
 ExportCSVRows   = ['front', 'front image', 'back', 'back image', 'chapter']
+CSVMap = {
+    'front': 0,
+    'front image': 1,
+    'back': 2,
+    'back image': 3,
+    'chapter': 4
+}
 
 # Commands that can be used in front and back text of cards
 nab_cmd = '{nab}'
