@@ -1,4 +1,4 @@
-# testExportWizard.py
+# testExportCSVWizard.py
 import wx
 import wx.adv as adv
 import ExportCSVWizard
@@ -10,8 +10,8 @@ runtimepath = os.getcwd()
 
 class TestApp(wx.App):
     def OnInit(self):
-        card_set = FlashCard.FlashCardSet()
-        card_set.GenerateTestData()
+        self.CardSet = FlashCard.FlashCardSet()
+        self.CardSet.GenerateTestData()
 
         self.Config = configparser.ConfigParser()
 
@@ -26,8 +26,10 @@ class TestApp(wx.App):
         iconfile = os.path.join(runtimepath, 'icons/pyFlashCards2-export.png')
         bitmap = wx.Bitmap(iconfile, wx.BITMAP_TYPE_PNG)
 
-        wizard = ExportCSVWizard.ExportCSVWizard(None, -1, "Export CSV Wizard", bitmap, card_set, self.Config)
+        wizard = ExportCSVWizard.ExportCSVWizard(None, -1, "Export CSV Wizard", bitmap, self.CardSet, self.Config)
         wizard.RunWizard()
+
+        wizard.Destroy()
 
         return True
 

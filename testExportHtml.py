@@ -14,8 +14,9 @@ set = FlashCard.FlashCardSet()
 set.Load(file)
 
 # Export one chapter
-chapter = set.GetChapterName(5)
-set.ExportHTML(htmlfile, chapter)
+chapters = []
+chapters.append(set.GetChapterName(5))
+set.ExportHTML(htmlfile, chapters)
 
 # Export all chapters
 set.ExportHTMLAllChapters(htmlfile)

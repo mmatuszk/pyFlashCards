@@ -13,8 +13,9 @@ set = FlashCard.FlashCardSet()
 set.Load(file)
 
 # Export one chapter
-chapter = set.GetChapterName(5)
-set.ExportXML(xmlfile, chapter)
+chapters = []
+chapters.append(set.GetChapterName(5))
+set.ExportXML(xmlfile, chapters)
 
 
 set.Close()

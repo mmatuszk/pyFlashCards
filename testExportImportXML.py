@@ -31,7 +31,7 @@ imported_set.GenerateTestData()
 chapter = 'USMLE Path'
 
 # Import the previously exported XML file
-imported_set.ImportXML(xmlfile, chapter, create_chapter=False)
+imported_set.ImportXML(xmlfile, chapter)
 
 # Export all chapters
 imported_set.ExportHTMLAllChapters(htmlfile)
