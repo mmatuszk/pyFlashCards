@@ -69,10 +69,11 @@ class DelimiterSelectionPage(wx.adv.WizardPageSimple):
 
     
 class FileSelectionPage(wx.adv.WizardPageSimple):
-    def __init__(self, parent, defaultDir="."):
+    def __init__(self, parent, defaultDir, chapterpage):
         super(FileSelectionPage, self).__init__(parent)
 
         self.defaultDir = defaultDir
+        self.chapterpage = chapterpage
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         label = wx.StaticText(self, -1, "Choose file to export")
@@ -93,6 +94,12 @@ class FileSelectionPage(wx.adv.WizardPageSimple):
         dlg = wx.FileDialog(self, "Save CSV file", defaultDir=self.defaultDir, 
                             defaultFile="", wildcard="CSV files (*.csv)|*.csv",
                             style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        
+        selected_chapters = self.chapterpage.GetSelectedChapters()
+        if len(selected_chapters) == 1:
+            dlg.SetFilename(selected_chapters[0])
+        else:
+            dlg.SetFilename('')
 
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
@@ -113,7 +120,8 @@ class ExportCSVWizard(wx.adv.Wizard):
         chapters = self.card_set.GetChapters()
         self.chapterPage = ChapterSelectionPage(self, chapters)
         self.delimiterPage = DelimiterSelectionPage(self)
-        self.filePage = FileSelectionPage(self, defaultDir=self.Config.get('directories', 'export_dir'))
+        self.filePage = FileSelectionPage(self, defaultDir=self.Config.get('directories', 'export_dir'),
+                                          chapterpage=self.chapterPage)
 
         # Chain pages
         wx.adv.WizardPageSimple.Chain(self.chapterPage, self.delimiterPage)
@@ -144,7 +152,5 @@ class ExportCSVWizard(wx.adv.Wizard):
                 dlg = wx.MessageDialog(self, "You must select a file to export.", "Export Error", wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
+    
         return False  # Indicate that the wizard did not complete successfully
-
-        # Destroy the wizard after completion
-        self.Destroy()
