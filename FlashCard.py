@@ -1553,11 +1553,11 @@ class FlashCardSet:
 
         return self.ImportMap[type](filename, chapter)
 
-    def Export(self, type, filename, chapter):
+    def Export(self, type, filename, chapters):
         if type not in self.ExportMap.keys():
             return 0
 
-        return self.ExportMap[type](filename, chapter)
+        return self.ExportMap[type](filename, chapters)
                         
     def ImportCards(self, filename, chapter):
         print(filename)
@@ -1698,11 +1698,7 @@ class FlashCardSet:
             return destination_path
         return ''
 
-    def ExportXML(self, filename, chapter):
-        # Ensure filename is a string, not bytes
-        if isinstance(filename, bytes):
-            filename = filename.decode('utf-8') 
-                   
+    def ExportXML(self, filename, chapters):
         # Create a Path object from the filename
         file_path = Path(filename)
 
@@ -1718,44 +1714,24 @@ class FlashCardSet:
         root = doc.add('data')
 
         cardsNode = root.add('card_list')
-        for card in self.Cards[chapter]:
-            node = cardsNode.add('card')
-            node.add('front_text').addText(card.GetFrontText())
-            node.add('back_text').addText(card.GetBackText())
+        for chapter in chapters:
+            if chapter in self.Cards:
+                for card in self.Cards[chapter]:
+                    node = cardsNode.add('card')
+                    node.add('front_text').addText(card.GetFrontText())
+                    node.add('back_text').addText(card.GetBackText())
 
-            ExpCard = card.Copy()
-            # Copy front image
-            srcimg = card.GetFrontImage()
-            if srcimg is not None:
-                # src image is 'tmp1/imagename'
-                # dir = tmp1
-                # fn = imagename
-                dir, fn = os.path.split(srcimg)
-                destimg = os.path.join(imagedir, fn)
-                shutil.copy(srcimg, destimg)
-                d1, d2 = os.path.split(imagedir)
-                relimg = os.path.join(d2, fn)
-                ExpCard.SetFrontImage(relimg)
-            # Copy back image
-            srcimg = card.GetBackImage()
-            if srcimg is not None:
-                # src image is 'tmp1/imagename'
-                # dir = tmp1
-                # fn = imagename
-                dir, fn = os.path.split(srcimg)
-                destimg = os.path.join(imagedir, fn)
-                shutil.copy(srcimg, destimg)
-                d1, d2 = os.path.split(imagedir)
-                relimg = os.path.join(d2, fn)
-                ExpCard.SetBackImage(relimg)
+                    # Process and copy images
+                    front_image_path = self.process_and_copy_image(card.GetFrontImage(), imagedir)
+                    back_image_path = self.process_and_copy_image(card.GetBackImage(), imagedir)
 
-            if ExpCard.FrontImage:
-                node.add('front_image').addText(ExpCard.GetFrontImage())
-            if ExpCard.BackImage:
-                node.add('back_image').addText(ExpCard.GetBackImage())
+                    if front_image_path:
+                        node.add('front_image').addText(front_image_path)
+                    if back_image_path:
+                        node.add('back_image').addText(back_image_path)
 
-            node.add('chapter').addText(chapter)
-            ct += 1
+                    node.add('chapter').addText(chapter)
+                    ct += 1
 
         # Write the document to file
         f = codecs.open(filename, 'w', 'utf_8')
@@ -1826,7 +1802,7 @@ class FlashCardSet:
 
         return sum(len(self.Cards[chapter]) for chapter in self.GetChapters())    
 
-    def ExportHTML(self, filename, chapter):
+    def ExportHTML(self, filename, chapters):
         # Make a directory for images
         root, ext = os.path.splitext(filename)
         imagedir = root + '_files'
@@ -1839,35 +1815,45 @@ class FlashCardSet:
 
         # Set the title
         soup.head.append(soup.new_tag("title"))
-        soup.title.string = chapter
+        title = "Chapters: " + ", ".join(chapters)
+        soup.title.string = title
 
-        # Create the main table for cards
-        table = soup.new_tag("table", style="width: 100%; border: 1px solid black; border-collapse: collapse;")
-        
-        for card in self.Cards[chapter]:
-            front_image = self.process_and_copy_image(card.GetFrontImage(), imagedir)
-            back_image = self.process_and_copy_image(card.GetBackImage(), imagedir)
+        total_cards = 0
 
-            tr = soup.new_tag("tr")
-            for content, image in [(card.GetFrontText(), front_image), (card.GetBackText(), back_image)]:
-                td = soup.new_tag("td", style="border: 1px solid black; padding: 4px;")
-                if image:
-                    img_tag = soup.new_tag("img", src=image)
-                    td.append(img_tag)
-                if content:
-                    # Parsing and appending HTML content instead of setting it as text
-                    parsed_content = BeautifulSoup(content, "html.parser")
-                    td.append(parsed_content)
-                tr.append(td)
-            table.append(tr)
+        for chapter in chapters:
+            if chapter in self.Cards:
+                # Create the main table for cards of this chapter
+                chapter_header = soup.new_tag("h2")
+                chapter_header.string = chapter
+                soup.body.append(chapter_header)
 
-        soup.body.append(table)
+                table = soup.new_tag("table", style="width: 100%; border: 1px solid black; border-collapse: collapse;")
+
+                for card in self.Cards[chapter]:
+                    front_image = self.process_and_copy_image(card.GetFrontImage(), imagedir)
+                    back_image = self.process_and_copy_image(card.GetBackImage(), imagedir)
+
+                    tr = soup.new_tag("tr")
+                    for content, image in [(card.GetFrontText(), front_image), (card.GetBackText(), back_image)]:
+                        td = soup.new_tag("td", style="border: 1px solid black; padding: 4px;")
+                        if image:
+                            img_tag = soup.new_tag("img", src=image)
+                            td.append(img_tag)
+                        if content:
+                            # Parsing and appending HTML content instead of setting it as text
+                            parsed_content = BeautifulSoup(content, "html.parser")
+                            td.append(parsed_content)
+                        tr.append(td)
+                    table.append(tr)
+                    total_cards += 1
+
+                soup.body.append(table)
 
         # Write the document to the file
         with codecs.open(filename, "w", "utf-8-sig") as file:
             file.write(str(soup.prettify()))
 
-        return len(self.Cards[chapter])
+        return total_cards
 
     def ExportHTMLAllChapters(self, filename):
         # Create a directory for images
