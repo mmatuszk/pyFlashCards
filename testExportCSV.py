@@ -13,8 +13,9 @@ set = FlashCard.FlashCardSet()
 set.Load(file)
 
 # Export one chapter
-chapter = set.GetChapterName(5)
-set.ExportCSV(csvfile, chapter, header=True)
+chapters = []
+chapters.append(set.GetChapterName(5))
+set.ExportCSV(csvfile, chapters, header=True)
 
 # Export all chapters
 # You need to implement this functionality if required. The current FlashCard class does not support exporting all chapters to CSV in one go.
