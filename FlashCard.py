@@ -46,6 +46,8 @@ ExportTypeList  = ['XML file - chapter', 'HTML file - chapter']
 ExportWildcard  = ['XML files (*.xml)|*.xml', 'HTML files (*.html)|*.html']
 ExportExt       = ['xml', 'html']
 
+ExportCSVRows   = ['front', 'front image', 'back', 'back image', 'chapter']
+
 # Commands that can be used in front and back text of cards
 nab_cmd = '{nab}'
 ab_cmd  = '{ab}'
@@ -1755,7 +1757,7 @@ class FlashCardSet:
 
             # Write header if required
             if header:
-                writer.writerow(['front', 'front image', 'back', 'back image', 'chapter'])
+                writer.writerow(ExportCSVRows)
 
             # Write card data for each chapter
             for chapter in chapters:
