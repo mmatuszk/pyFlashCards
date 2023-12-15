@@ -54,7 +54,7 @@ import FlashCard
 import FlashCardDataDisp
 import events
 import ImportWizard as iw
-import ExportWizard as ew
+import ExportWizard, ExportCSVWizard
 
 ID_FLASH_CARD_FRAME             = wx.Window.NewControlId()
 
@@ -63,7 +63,8 @@ ID_FILE_OPEN                    = wx.Window.NewControlId()
 ID_FILE_RECENT_DOCS             = wx.Window.NewControlId()
 ID_FILE_CLOSE                   = wx.Window.NewControlId()
 ID_FILE_IMPORT                  = wx.Window.NewControlId()
-ID_FILE_EXPORT                  = wx.Window.NewControlId()
+ID_FILE_EXPORT_WZ               = wx.Window.NewControlId()
+ID_FILE_EXPORT_CSV_WZ           = wx.Window.NewControlId()
 ID_FILE_SAVE                    = wx.Window.NewControlId()
 ID_FILE_SAVE_AS                 = wx.Window.NewControlId()
 ID_FILE_EXIT                    = wx.Window.NewControlId()
@@ -314,8 +315,16 @@ class FlashCardFrame(wx.Frame):
         FileMenu.AppendSeparator()
         FileMenu.Append(ID_FILE_IMPORT, 'Import\tCtrl+I', 'Import a card file')
         FileMenu.Enable(ID_FILE_IMPORT, False)
-        FileMenu.Append(ID_FILE_EXPORT, 'Export\tCtrl+X', 'Export a card file')
-        FileMenu.Enable(ID_FILE_EXPORT, False)
+
+        # Adding Export submenu
+        ExportMenu = wx.Menu()
+        FileMenu.AppendSubMenu(ExportMenu, "Export")
+        
+        ExportMenu.Append(ID_FILE_EXPORT_CSV_WZ, 'Export CSV', 'Export chapters to CSV')
+        ExportMenu.Append(ID_FILE_EXPORT_WZ, 'Export HTML, XML', 'Export chapters to HTML or XML')
+        ExportMenu.Enable(ID_FILE_EXPORT_CSV_WZ, False)
+        ExportMenu.Enable(ID_FILE_EXPORT_WZ, False)
+
         FileMenu.AppendSeparator()
 
         save_bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_MENU)
@@ -340,7 +349,8 @@ class FlashCardFrame(wx.Frame):
         self.Bind(wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9)
         self.Bind(wx.EVT_MENU, self.OnClose, id=ID_FILE_CLOSE)
         self.Bind(wx.EVT_MENU, self.OnImportWizard, id=ID_FILE_IMPORT)
-        self.Bind(wx.EVT_MENU, self.OnExportWizard, id=ID_FILE_EXPORT)
+        self.Bind(wx.EVT_MENU, self.OnExportCSVWizard, id=ID_FILE_EXPORT_CSV_WZ)
+        self.Bind(wx.EVT_MENU, self.OnExportWizard, id=ID_FILE_EXPORT_WZ)
         self.Bind(wx.EVT_MENU, self.OnExit, id=ID_FILE_EXIT)
 
         
@@ -441,15 +451,18 @@ class FlashCardFrame(wx.Frame):
         self.FileMenu.Enable(ID_FILE_SAVE, True)
         self.FileMenu.Enable(ID_FILE_SAVE_AS, True)
         self.FileMenu.Enable(ID_FILE_IMPORT, True)
-        self.FileMenu.Enable(ID_FILE_EXPORT, True)
+        self.FileMenu.Enable(ID_FILE_EXPORT_CSV_WZ, True)
+        self.FileMenu.Enable(ID_FILE_EXPORT_WZ, True)        
 
         self.CardsMenu.Enable(ID_CARDS_CARD_MANAGER, True)
         self.CardsMenu.Enable(ID_CARDS_CARD_BROWSER, True)
         self.CardsMenu.Enable(ID_CARDS_EDIT_TEST_CARD, True)
         self.CardsMenu.Enable(ID_CARDS_CHAPTER_MANAGER, True)
+
         self.LearningMenu.Enable(ID_LEARNING_LEARNING_MANAGER, True)
         self.LearningMenu.Enable(ID_LEARNING_BOX_MANAGER, True)
         self.LearningMenu.Enable(ID_LEARNING_RANDOMIZE, True)
+
         self.ToolsMenu.Enable(ID_TOOLS_VIEW_CH_HTML, True)
         self.ToolsMenu.Enable(ID_TOOLS_VIEW_ANS, True)
         self.ToolsMenu.Enable(ID_TOOLS_DISP_DATA, True)
@@ -459,14 +472,18 @@ class FlashCardFrame(wx.Frame):
         self.FileMenu.Enable(ID_FILE_SAVE, False)
         self.FileMenu.Enable(ID_FILE_SAVE_AS, False)
         self.FileMenu.Enable(ID_FILE_IMPORT, False)
-        self.FileMenu.Enable(ID_FILE_EXPORT, False) 
+        self.FileMenu.Enable(ID_FILE_EXPORT_CSV_WZ, False)
+        self.FileMenu.Enable(ID_FILE_EXPORT_WZ, False)        
+
         self.CardsMenu.Enable(ID_CARDS_CARD_MANAGER, False)
         self.CardsMenu.Enable(ID_CARDS_CARD_BROWSER, False)
         self.CardsMenu.Enable(ID_CARDS_EDIT_TEST_CARD, False)
         self.CardsMenu.Enable(ID_CARDS_CHAPTER_MANAGER, False)
+
         self.LearningMenu.Enable(ID_LEARNING_LEARNING_MANAGER, False)
         self.LearningMenu.Enable(ID_LEARNING_BOX_MANAGER, False)
         self.LearningMenu.Enable(ID_LEARNING_RANDOMIZE, False)
+
         self.ToolsMenu.Enable(ID_TOOLS_VIEW_CH_HTML, False)
         self.ToolsMenu.Enable(ID_TOOLS_VIEW_ANS, False)
         self.ToolsMenu.Enable(ID_TOOLS_DISP_DATA, False)
@@ -766,6 +783,27 @@ class FlashCardFrame(wx.Frame):
 
         wizard.Destroy()
 
+    def OnExportCSVWizard(self, event):
+        if not self.CardSet:
+            return
+        
+        if self.CardSet.GetChapterCount() == 0:
+            dlg = wx.MessageDialog(self, "Add some chapters first", "Error", wx.OK | wx.ICON_ERROR)
+            dlg.CenterOnParent(wx.BOTH)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+                
+        iconfile = os.path.join(self.runtimepath, 'icons/pyFlashCards2-export.png')
+        bitmap = wx.Bitmap(iconfile, wx.BITMAP_TYPE_PNG)
+
+        wizard = ExportCSVWizard.ExportCSVWizard(None, -1, "Export CSV Wizard", bitmap, self.CardSet, self.Config)
+        wizard.RunWizard()
+
+        wizard.Destroy()
+
+        return True
+    
     def OnExportWizard(self, event):
         if not self.CardSet:
             return
@@ -779,29 +817,13 @@ class FlashCardFrame(wx.Frame):
 
         iconfile = os.path.join(self.runtimepath, 'icons/pyFlashCards2-export.png')
         bitmap = wx.Bitmap(iconfile, wx.BITMAP_TYPE_PNG)
-        wizard = wx.adv.Wizard(self, -1, "Export Wizard", bitmap)
-        page1 = ew.ChapterPage(wizard, self.CardSet.GetChapters())
-        page2 = ew.ExportTypePage(wizard)
-        page3 = ew.FilePage(wizard, self.Config.get('directories', 'export_dir'), page2, page1)
-        wx.adv.WizardPageSimple.Chain(page1, page2)
-        wx.adv.WizardPageSimple.Chain(page2, page3)
 
-        if wizard.RunWizard(page1):
-            ExportChapter = page1.GetData()
-            ExportType = page2.GetData()
-            ExportFile = page3.GetData()
-            if ExportFile:
-                self.Config.set('directories', 'export_dir', os.path.dirname(ExportFile))
-                n = self.CardSet.Export(ExportType, ExportFile, ExportChapter)
-                dlg = wx.MessageDialog(self, "%d cards exported" % n, "Export result", wx.OK | wx.ICON_INFORMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
-            else:
-                dlg = wx.MessageDialog(self, "You must select a file", "Export result", wx.OK | wx.ICON_INFORMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
+        wizard = ExportWizard.ExportWizard(None, -1, "Export Wizard", bitmap, self.CardSet, self.Config)
+        wizard.RunWizard()
 
         wizard.Destroy()
+
+        return True
 
     def OnExit(self, event):
         self.Close()
