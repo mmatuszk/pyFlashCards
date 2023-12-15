@@ -2,6 +2,8 @@ Version 0.5.0
 - Updated for python 3 and wxPython 4
 - Fixed autocorrect in TextHtmlCtrl on windows.  It was not working properly due to mismatch between wx.TextCtrl.GetValue() returning
     unix style new line (\n) but wx.TextCtrl.GetInsertionPoint() couting using windows style new line (\r\n)
+- Added support to export to CSV
+- Added chapter selection support to HTML and XML exports
 
 Version 0.4.0
 - Support for multiple instances (Changed from a fixed temporary directory to a dynamic one)
