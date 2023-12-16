@@ -697,6 +697,7 @@ class FlashCardFrame(wx.Frame):
     def SaveAndCloseCardSet(self):
         ans = wx.ID_YES
         if self.CardSet.IsSaved():
+            self.AddFileToHistory()
             self.CloseCardSet()
         else:
             dlg = wx.MessageDialog(self, "Active set not saved.  Do you want to save it?", "Warning",
@@ -722,12 +723,22 @@ class FlashCardFrame(wx.Frame):
         filename = self.FileHistory.GetHistoryFile(fileNum)
 
         # now open the file
+        if not os.path.exists(filename):
+            dlg = wx.MessageDialog(self, f"File '{filename}' not found. Remove from history?", "File Not Found",
+                                wx.YES_NO | wx.ICON_QUESTION)
+            result = dlg.ShowModal()
+            dlg.Destroy()
+
+            if result == wx.ID_YES:
+                self.FileHistory.RemoveFileFromHistory(fileNum)
+                self.SaveFileHistory()  # update the file history in the config
+            return
+
         if not self.CardSet:
             self.Open(filename)
-                
         else:
             if not self.CardSet.IsSaved():
-                dlg = wx.MessageDialog(self, "Active set not saved.  Do you want to save it.", "Warning",
+                dlg = wx.MessageDialog(self, "Active set not saved. Do you want to save it?", "Warning",
                                 wx.YES_NO | wx.YES_DEFAULT | wx.CANCEL | wx.ICON_QUESTION)
                 ans = dlg.ShowModal()
                 if ans == wx.ID_YES:
@@ -740,7 +751,6 @@ class FlashCardFrame(wx.Frame):
                     return
 
                 dlg.Destroy()
-
                 self.LoadCardSet(filename)
 
         self.GenerateTitle()
