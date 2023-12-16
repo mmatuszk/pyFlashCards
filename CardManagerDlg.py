@@ -39,29 +39,29 @@ MaxPopupChapters = 100
 def create(parent):
     return CardManagerDlg(parent)
 
-ID_CMDLG                    = wx.Window.NewControlId()
-ID_CMDLG_BACKENTRY          = wx.Window.NewControlId()
-ID_CMDLG_BACKIMAGEBTN       = wx.Window.NewControlId()
-ID_CMDLG_CARDCOUNT          = wx.Window.NewControlId()
-ID_CMDLG_CARDDOWNBTN        = wx.Window.NewControlId()
-ID_CMDLG_CARDLISTCTRL       = wx.Window.NewControlId()
-ID_CMDLG_CARDUPBTN          = wx.Window.NewControlId()
-ID_CMDLG_CHAPTERSCHOICE     = wx.Window.NewControlId()
-ID_CMDLG_COMMITCARDBTN      = wx.Window.NewControlId()
-ID_CMDLG_CANCELCARDBTN      = wx.Window.NewControlId()
-ID_CMDLG_FINDNEXTBTN        = wx.Window.NewControlId()
-ID_CMDLG_FINDPREVIOUSBTN    = wx.Window.NewControlId()
-ID_CMDLG_SEARCHCTRL         = wx.Window.NewControlId()
-ID_CMDLG_FRONTENTRY         = wx.Window.NewControlId()
-ID_CMDLG_FRONTIMAGEBUTTON   = wx.Window.NewControlId()
-ID_CMDLG_REMOVEBACKIMAGEBTN = wx.Window.NewControlId()
-ID_CMDLG_REMOVEFRONTIMAGEBTN= wx.Window.NewControlId()
-ID_CMDLG_STATICTEXT1        = wx.Window.NewControlId()
-ID_CMDLG_STATICTEXT2        = wx.Window.NewControlId()
-ID_CMDLG_STATICTEXT3        = wx.Window.NewControlId()
-ID_CMDLG_STATICTEXT4        = wx.Window.NewControlId()
-ID_CMDLG_STATICTEXT5        = wx.Window.NewControlId()
-ID_CMDLG_AUTOCORRBTN        = wx.Window.NewControlId()
+ID_CMDLG                    = wx.ID_ANY
+ID_CMDLG_BACKENTRY          = wx.ID_ANY
+ID_CMDLG_BACKIMAGEBTN       = wx.ID_ANY
+ID_CMDLG_CARDCOUNT          = wx.ID_ANY
+ID_CMDLG_CARDDOWNBTN        = wx.ID_ANY
+ID_CMDLG_CARDLISTCTRL       = wx.ID_ANY
+ID_CMDLG_CARDUPBTN          = wx.ID_ANY
+ID_CMDLG_CHAPTERSCHOICE     = wx.ID_ANY
+ID_CMDLG_COMMITCARDBTN      = wx.ID_ANY
+ID_CMDLG_CANCELCARDBTN      = wx.ID_ANY
+ID_CMDLG_FINDNEXTBTN        = wx.ID_ANY
+ID_CMDLG_FINDPREVIOUSBTN    = wx.ID_ANY
+ID_CMDLG_SEARCHCTRL         = wx.ID_ANY
+ID_CMDLG_FRONTENTRY         = wx.ID_ANY
+ID_CMDLG_FRONTIMAGEBUTTON   = wx.ID_ANY
+ID_CMDLG_REMOVEBACKIMAGEBTN = wx.ID_ANY
+ID_CMDLG_REMOVEFRONTIMAGEBTN= wx.ID_ANY
+ID_CMDLG_STATICTEXT1        = wx.ID_ANY
+ID_CMDLG_STATICTEXT2        = wx.ID_ANY
+ID_CMDLG_STATICTEXT3        = wx.ID_ANY
+ID_CMDLG_STATICTEXT4        = wx.ID_ANY
+ID_CMDLG_STATICTEXT5        = wx.ID_ANY
+ID_CMDLG_AUTOCORRBTN        = wx.ID_ANY
 
 hspacer = 10
 vspacer = 10
@@ -91,7 +91,7 @@ class CardManagerDlg(wx.Dialog):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(chapterlabel, 0, wx.ALIGN_CENTER)
         sizer.AddSpacer(hspacer)
-        sizer.Add(self.ChaptersChoice, 1, wx.ALIGN_CENTER | wx.EXPAND)
+        sizer.Add(self.ChaptersChoice, 1, wx.EXPAND)
 
         return sizer
 
@@ -327,7 +327,7 @@ class CardManagerDlg(wx.Dialog):
         HelpButton = wx.Button(parent, wx.ID_HELP)
 
         sizer.Add(AutoCorrButton, 0, wx.ALIGN_CENTER | wx.ALL, 5)
-        sizer.Add(HelpButton, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
+        sizer.Add(HelpButton, 0, wx.ALL, 5)
 
         AutoCorrButton.Bind(wx.EVT_BUTTON, self.OnAutoCorr)
         HelpButton.Bind(wx.EVT_BUTTON, self.OnHelp)
@@ -411,8 +411,8 @@ class CardManagerDlg(wx.Dialog):
         self.InitCardEntry()
         
         width = self.CardListCtrl.GetSize()[0]/2-5
-        self.CardListCtrl.InsertColumn(0, "Card Front", width = width)
-        self.CardListCtrl.InsertColumn(1, "Card Back", width = width)
+        self.CardListCtrl.InsertColumn(0, "Card Front", width = int(width))
+        self.CardListCtrl.InsertColumn(1, "Card Back", width = int(width))
         
         self.AddCards2ListUI(self.CardSet.GetChapterCards(chapters[0]))
 
@@ -1079,11 +1079,11 @@ class CardManagerDlg(wx.Dialog):
     def OnRightClick(self, event):
         # only do this part the first time so the events are only bound once
         if not hasattr(self, "popupIDDelete"):
-            self.popupIDInsertAbove = wx.Window.NewControlId()
-            self.popupIDInsertBelow = wx.Window.NewControlId()
-            self.popupIDDelete = wx.Window.NewControlId()
-            self.popupIDMove = wx.Window.NewControlId()
-            self.popupIDChapters = [wx.Window.NewControlId() for n in range(MaxPopupChapters)]
+            self.popupIDInsertAbove = wx.ID_ANY
+            self.popupIDInsertBelow = wx.ID_ANY
+            self.popupIDDelete = wx.ID_ANY
+            self.popupIDMove = wx.ID_ANY
+            self.popupIDChapters = [wx.ID_ANY for n in range(MaxPopupChapters)]
 
             self.Bind(wx.EVT_MENU, self.OnPopupInsertAbove, id=self.popupIDInsertAbove)
             self.Bind(wx.EVT_MENU, self.OnPopupInsertBelow, id=self.popupIDInsertBelow)
