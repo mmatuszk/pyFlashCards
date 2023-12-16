@@ -27,7 +27,7 @@ import wx.adv
 import os
 import FlashCard
 
-#ID_IW_FILE_PAGE_BROWSE = wx.Window.NewControlId()
+#ID_IW_FILE_PAGE_BROWSE = wx.ID_ANY
 ID_IW_FILE_PAGE_BROWSE = wx.ID_ANY
 
 class ImportTypePage(wx.adv.WizardPageSimple):
@@ -120,20 +120,20 @@ class ChapterPage(wx.adv.WizardPageSimple):
     def GetData(self):
         return self.ChapterListBox.GetStringSelection()
 
-class ImportWizard(wx.adv.Wizard):
-    def __init__(self, parent, id, title, bitmap, card_set, config):
-        super().__init__(parent, id, title, bitmap)
-        self.card_set = card_set
-        self.Config = config  # Store the configuration object
+# class ImportWizard(wx.adv.Wizard):
+#     def __init__(self, parent, id, title, bitmap, card_set, config):
+#         super().__init__(parent, id, title, bitmap)
+#         self.card_set = card_set
+#         self.Config = config  # Store the configuration object
 
-        # Creating the wizard pages and assigning them to class attributes
-        self.importTypePage = ImportTypePage(self, FlashCard.ImportTypeList)
-        self.fileSelectionPage = FilePage(self, self.Config.get('directories', 'import_dir'), FlashCard.ImportWildcard)
-        self.chapterSelectionPage = ChapterPage(self, card_set.GetChapters())
+#         # Creating the wizard pages and assigning them to class attributes
+#         self.importTypePage = ImportTypePage(self, FlashCard.ImportTypeList)
+#         self.fileSelectionPage = FilePage(self, self.Config.get('directories', 'import_dir'), FlashCard.ImportWildcard)
+#         self.chapterSelectionPage = ChapterPage(self, card_set.GetChapters())
 
-        # Chaining the pages together
-        wx.adv.WizardPageSimple.Chain(self.importTypePage, self.fileSelectionPage)
-        wx.adv.WizardPageSimple.Chain(self.fileSelectionPage, self.chapterSelectionPage)       
+#         # Chaining the pages together
+#         wx.adv.WizardPageSimple.Chain(self.importTypePage, self.fileSelectionPage)
+#         wx.adv.WizardPageSimple.Chain(self.fileSelectionPage, self.chapterSelectionPage)       
         
-    def RunWizard(self):
+#     def RunWizard(self):
         
