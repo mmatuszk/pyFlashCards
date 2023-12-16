@@ -1,5 +1,6 @@
 #-------------------------------------------------------------------------------
 # Author:   Marcin Matuszkiewicz
+# File:     ImportWizard.py
 #-------------------------------------------------------------------------------
 # pyFlashCards is a multiplatform flash cards software.
 # Copyright (C) 2006  Marcin Matuszkiewicz
@@ -120,20 +121,32 @@ class ChapterPage(wx.adv.WizardPageSimple):
     def GetData(self):
         return self.ChapterListBox.GetStringSelection()
 
-# class ImportWizard(wx.adv.Wizard):
-#     def __init__(self, parent, id, title, bitmap, card_set, config):
-#         super().__init__(parent, id, title, bitmap)
-#         self.card_set = card_set
-#         self.Config = config  # Store the configuration object
+class ImportWizard(wx.adv.Wizard):
+    def __init__(self, parent, id, title, bitmap, card_set, config):
+        super().__init__(parent, id, title, bitmap)
+        self.CardSet = card_set
+        self.Config = config  # Store the configuration object
 
-#         # Creating the wizard pages and assigning them to class attributes
-#         self.importTypePage = ImportTypePage(self, FlashCard.ImportTypeList)
-#         self.fileSelectionPage = FilePage(self, self.Config.get('directories', 'import_dir'), FlashCard.ImportWildcard)
-#         self.chapterSelectionPage = ChapterPage(self, card_set.GetChapters())
+        # Creating the wizard pages and assigning them to class attributes
+        self.importTypePage = ImportTypePage(self, FlashCard.ImportTypeList)
+        self.fileSelectionPage = FilePage(self, self.Config.get('directories', 'import_dir'), FlashCard.ImportWildcard)
+        self.chapterSelectionPage = ChapterPage(self, self.CardSet.GetChapters())
 
-#         # Chaining the pages together
-#         wx.adv.WizardPageSimple.Chain(self.importTypePage, self.fileSelectionPage)
-#         wx.adv.WizardPageSimple.Chain(self.fileSelectionPage, self.chapterSelectionPage)       
+        # Chaining the pages together
+        wx.adv.WizardPageSimple.Chain(self.importTypePage, self.fileSelectionPage)
+        wx.adv.WizardPageSimple.Chain(self.fileSelectionPage, self.chapterSelectionPage)       
         
-#     def RunWizard(self):
-        
+    def RunWizard(self):
+        if super().RunWizard(self.importTypePage):
+            ImportType = self.importTypePage.GetData()
+            ImportFile = self.fileSelectionPage.GetData()
+            ImportChapter = self.chapterSelectionPage.GetData()
+            if os.path.exists(ImportFile):
+                self.Config.set('directories', 'import_dir', os.path.dirname(ImportFile))
+                n = self.CardSet.Import(ImportType, ImportFile, ImportChapter)
+                dlg = wx.MessageDialog(self, "%d cards imported" % n, "Import result", wx.OK | wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return True # Inducate wizard completed succesfully
+
+        return False # Indicate that the wizard did not complete successfully

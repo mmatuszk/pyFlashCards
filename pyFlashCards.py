@@ -53,7 +53,7 @@ import AboutDlg
 import FlashCard
 import FlashCardDataDisp
 import events
-import ImportWizard as iw
+import ImportWizard
 import ExportWizard, ExportCSVWizard
 
 ID_FLASH_CARD_FRAME             = wx.Window.NewControlId()
@@ -773,23 +773,9 @@ class FlashCardFrame(wx.Frame):
 
         iconfile = os.path.join(self.runtimepath, 'icons/pyFlashCards2-import.png')
         bitmap = wx.Bitmap(iconfile, wx.BITMAP_TYPE_PNG)
-        wizard = wx.adv.Wizard(self, -1, "Import Wizard", bitmap)
-        page1 = iw.ImportTypePage(wizard, FlashCard.ImportTypeList)
-        page2 = iw.FilePage(wizard, self.Config.get('directories', 'import_dir'), FlashCard.ImportWildcard)
-        page3 = iw.ChapterPage(wizard, self.CardSet.GetChapters())
-        wx.adv.WizardPageSimple.Chain(page1, page2)
-        wx.adv.WizardPageSimple.Chain(page2, page3)
 
-        if wizard.RunWizard(page1):
-            ImportType = page1.GetData()
-            ImportFile = page2.GetData()
-            ImportChapter = page3.GetData()
-            if os.path.exists(ImportFile):
-                self.Config.set('directories', 'import_dir', os.path.dirname(ImportFile))
-                n = self.CardSet.Import(ImportType, ImportFile, ImportChapter)
-                dlg = wx.MessageDialog(self, "%d cards imported" % n, "Import result", wx.OK | wx.ICON_INFORMATION)
-                dlg.ShowModal()
-                dlg.Destroy()
+        wizard = ImportWizard.ImportWizard(None, -1, "Import CSV Wizard", bitmap, self.CardSet, self.Config)
+        wizard.RunWizard()
 
         wizard.Destroy()
 

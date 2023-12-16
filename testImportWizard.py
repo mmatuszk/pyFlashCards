@@ -1,51 +1,40 @@
+# testImportWizard.py
 import wx
-import wx.adv
-import os
+import wx.adv as adv
+import ImportWizard  # Changed from ExportWizard to ImportWizard
 import FlashCard
-import ImportWizard as iw
+import os
+import configparser
 
-
-print(os.getcwd())
+runtimepath = os.getcwd()
 
 class TestApp(wx.App):
     def OnInit(self):
-        runtimepath = os.getcwd()
-        print(runtimepath)
-        self.frame = wx.Frame(None, -1, "Test Import Wizard")
+        self.CardSet = FlashCard.FlashCardSet()
+        self.CardSet.GenerateTestData()
 
-        # Create a FlashCardSet instance for testing
-        card_set = FlashCard.FlashCardSet()
-        card_set.GenerateTestData()
+        self.Config = configparser.ConfigParser()
+        self.runtimepath = runtimepath
 
-        if card_set.GetChapterCount() == 0:
-            wx.MessageBox("Add some chapters first", "Error", wx.OK | wx.ICON_ERROR)
-            return False
+        # Directories
+        if not self.Config.has_section('directories'):
+            self.Config.add_section('directories')
+        self.Config.set('directories', 'card_dir', self.Config.get('directories', 'card_dir', fallback=runtimepath))
+        self.Config.set('directories', 'image_dir', self.Config.get('directories', 'image_dir', fallback=runtimepath))
+        self.Config.set('directories', 'import_dir', self.Config.get('directories', 'import_dir', fallback=runtimepath))
+        self.Config.set('directories', 'export_dir', self.Config.get('directories', 'export_dir', fallback=runtimepath))
 
-        # Set the icon for the wizard
-        iconfile = os.path.join(runtimepath, 'icons/pyFlashCards2-import.png')
-        iconfile = os.path.normpath(iconfile)
-        print(iconfile)
+        iconfile = os.path.join(self.runtimepath, 'icons/pyFlashCards2-import.png')
+
         bitmap = wx.Bitmap(iconfile, wx.BITMAP_TYPE_PNG)
-        wizard = wx.adv.Wizard(self.frame, -1, "Import Wizard", bitmap)
-        
-        page1 = iw.ImportTypePage(wizard, FlashCard.ImportTypeList)
-        page2 = iw.FilePage(wizard, runtimepath, FlashCard.ImportWildcard)
-        page3 = iw.ChapterPage(wizard, card_set.GetChapters())
-        
-        wx.adv.WizardPageSimple.Chain(page1, page2)
-        wx.adv.WizardPageSimple.Chain(page2, page3)
 
-        if wizard.RunWizard(page1):
-            ImportType = page1.GetData()
-            ImportFile = page2.GetData()
-            ImportChapter = page3.GetData()
-            if os.path.exists(ImportFile):
-                n = card_set.Import(ImportType, ImportFile, ImportChapter)
-                wx.MessageBox(f"{n} cards imported", "Import result", wx.OK | wx.ICON_INFORMATION)
+        wizard = ImportWizard.ImportWizard(None, -1, "Import CSV Wizard", bitmap, self.CardSet, self.Config)
+        wizard.RunWizard()
 
         wizard.Destroy()
+
         return True
 
-if __name__ == "__main__":
-    app = TestApp(redirect=False)
+if __name__ == '__main__':
+    app = TestApp()
     app.MainLoop()
