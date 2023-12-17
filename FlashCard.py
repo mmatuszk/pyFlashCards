@@ -46,6 +46,8 @@ ExportTypeList  = ['XML file - chapter', 'HTML file - chapter']
 ExportWildcard  = ['XML files (*.xml)|*.xml', 'HTML files (*.html)|*.html']
 ExportExt       = ['xml', 'html']
 
+CSVWildcard     = 'CSV file (*.csv)|*.csv|Text file (*.txt)|*.txt'
+
 ExportCSVRows   = ['front', 'front image', 'back', 'back image', 'chapter']
 CSVMap = {
     'front': 0,
