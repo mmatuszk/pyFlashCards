@@ -28,7 +28,7 @@ class TestApp(wx.App):
 
         bitmap = wx.Bitmap(iconfile, wx.BITMAP_TYPE_PNG)
 
-        wizard = ImportWizard.ImportWizard(None, -1, "Import CSV Wizard", bitmap, self.CardSet, self.Config)
+        wizard = ImportWizard.ImportWizard(None, -1, "Import Wizard", bitmap, self.CardSet, self.Config)
         wizard.RunWizard()
 
         wizard.Destroy()
