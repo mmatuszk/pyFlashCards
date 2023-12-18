@@ -63,8 +63,14 @@ class CSVMapPage(wx.adv.WizardPageSimple):
         self.columns = ['Front', 'Back', 'Front Image', 'Back Image', 'Chapter']
         self.column_choices = []
 
-        # Initialize dropdown choices
-        # self.InitializeColumnChoices()
+        # Create labels and choice dropdowns
+        for col in self.columns:
+            label = wx.StaticText(self, label=col + ":")
+            self.sizer.Add(label, 0, wx.ALL, 2)
+
+            choice = wx.Choice(self, choices=["Ignore"])
+            self.column_choices.append(choice)
+            self.sizer.Add(choice, 0, wx.EXPAND | wx.ALL, 2)
 
         self.SetSizer(self.sizer)
         
@@ -73,43 +79,66 @@ class CSVMapPage(wx.adv.WizardPageSimple):
         
     def OnPageChanged(self, event):
         if event.GetDirection():  # True if the page is being shown, not hidden
-            self.InitializeColumnChoices()
+            self.UpdateColumnChoices()
             event.Skip()  # Important to call Skip to let event processing continue
 
-    def InitializeColumnChoices(self):
+    def UpdateColumnChoices(self):
         csv_file_path = self.file_page.GetData()
-        column_names = self.ReadFirstRow(csv_file_path) if self.HasHeader() else []
+        column_names = self.ReadFirstRow(csv_file_path)  # Always read the first row
 
-        default_map = FlashCard.CSVMap
+        for choice in self.column_choices:
+            # Update choices
+            choice.Set(column_names+["Ignore"])
 
-        for col in self.columns:
-            label = wx.StaticText(self, label=col + ":")
-            self.sizer.Add(label, 0, wx.ALL, 2)
 
-            choices = ["Ignore"] + column_names
-            choice = wx.Choice(self, choices=choices)
 
-            # Automatically map if header is selected and column names match
-            if self.HasHeader():
-                default_index = default_map.get(col.lower(), None)
-                if default_index is not None and default_index < len(column_names):
-                    mapped_name = column_names[default_index]
-                    if mapped_name.lower() == col.lower():
-                        choice.SetSelection(default_index + 1)  # +1 for "Ignore" option
-                    else:
-                        choice.SetSelection(0)  # Set to "Ignore" if not matching
-                else:
-                    choice.SetSelection(0)  # Set to "Ignore" if no default mapping
-            else:
-                choice.SetSelection(0)  # Set to "Ignore" if no header
-
-            self.column_choices.append(choice)
-            self.sizer.Add(choice, 0, wx.EXPAND | wx.ALL, 2)
+        # Set default selections based on the number of columns
+        num_columns = len(column_names)
+        
+        if num_columns == 0:
+            wx.MessageBox("At least 2 columns are required in the CSV file. Select a differet file", "Error", wx.OK | wx.ICON_ERROR)
+            self.column_choices[0].SetSelection(0) # set front to col 0
+            self.column_choices[1].SetSelection(0) # set back image to Ignore
+            self.column_choices[2].SetSelection(0) # set back to col 1
+            self.column_choices[3].SetSelection(0) # set back image to Ignore
+            self.column_choices[4].SetSelection(0) # set chapter to Ignore
+        if num_columns == 1:
+            wx.MessageBox("At least 2 columns are required in the CSV file. Select a differet file", "Error", wx.OK | wx.ICON_ERROR)
+            self.column_choices[0].SetSelection(1) # set front to col 0
+            self.column_choices[1].SetSelection(1) # set back image to Ignore
+            self.column_choices[2].SetSelection(1) # set back to col 1
+            self.column_choices[3].SetSelection(1) # set back image to Ignore
+            self.column_choices[4].SetSelection(1) # set chapter to Ignore                        
+        elif num_columns == 2:
+            self.column_choices[0].SetSelection(0) # set front to col 0
+            self.column_choices[1].SetSelection(2) # set back image to Ignore
+            self.column_choices[2].SetSelection(1) # set back to col 1
+            self.column_choices[3].SetSelection(2) # set back image to Ignore
+            self.column_choices[4].SetSelection(2) # set chapter to Ignore
+        elif num_columns == 3:
+            self.column_choices[0].SetSelection(0) # set front to col 0
+            self.column_choices[1].SetSelection(3) # set back image to Ignore
+            self.column_choices[2].SetSelection(1) # set back to col 1
+            self.column_choices[3].SetSelection(3) # set back image to Ignore
+            self.column_choices[4].SetSelection(2) # set chapter col 2
+        elif num_columns == 4:
+            self.column_choices[0].SetSelection(0) # set front to col 0
+            self.column_choices[1].SetSelection(1) # set back image to col 1
+            self.column_choices[2].SetSelection(2) # set back to col 2
+            self.column_choices[3].SetSelection(3) # set back image col 3
+            self.column_choices[4].SetSelection(4) # set chapter Ignore
+        else:
+            self.column_choices[0].SetSelection(0) # set front to col 0
+            self.column_choices[1].SetSelection(1) # set back image to col 1
+            self.column_choices[2].SetSelection(2) # set back to col 2
+            self.column_choices[3].SetSelection(3) # set back image col 3
+            self.column_choices[4].SetSelection(4) # set chapter to col 4
+            
 
     def ReadFirstRow(self, csv_file_path):
         if not os.path.exists(csv_file_path):
             return []
-        with open(csv_file_path, 'r', encoding='utf-8') as file:
+        with open(csv_file_path, 'r', encoding='utf-8-sig') as file:
             reader = csv.reader(file)
             return next(reader, [])
 
