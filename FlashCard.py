@@ -1814,6 +1814,10 @@ class FlashCardSet:
         return sum(len(self.Cards[chapter]) for chapter in self.GetChapters())    
 
     def ExportHTML(self, filename, chapters):
+        # Convert a single string to a list
+        if isinstance(chapters, str):
+            chapters = [chapters]
+                    
         # Make a directory for images
         root, ext = os.path.splitext(filename)
         imagedir = root + '_files'
